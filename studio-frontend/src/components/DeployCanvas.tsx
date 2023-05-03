@@ -160,7 +160,7 @@ function DeployCanvas (
       await setDeployedObjects(objects);
     });
 
-    await props.setIsOverlayActive(false);
+    // await props.setIsOverlayActive(false);
 
   }
 

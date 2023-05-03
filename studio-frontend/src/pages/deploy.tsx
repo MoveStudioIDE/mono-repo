@@ -591,7 +591,7 @@ function DeployPage() {
         
       });
     }).finally(() => {
-      setIsOverlayActive(false);
+      // setIsOverlayActive(false);
     });
     // setIsOverlayActive(false);
   }
