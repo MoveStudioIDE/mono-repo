@@ -810,7 +810,7 @@ function BuildPage() {
   return (
     <div>
       <PageLayout 
-        header={<Header connectGithub={true} resetCache={resetCache} resetDemo={resetDemo}/>}
+        header={<Header showSettings={true} resetCache={resetCache} resetDemo={resetDemo}/>}
         sidebar={
           <BuildPageSidebar
             projectList={projectList}

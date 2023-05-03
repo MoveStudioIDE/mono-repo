@@ -655,7 +655,7 @@ function DeployPage() {
     <div>
       <PageLayout
         header={
-          <Header/>
+          <Header showSettings={true}/>
         }
         sidebar={
           <DeploySidebar 
