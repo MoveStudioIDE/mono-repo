@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { DeployedPackageInfo } from '../types/project-types';
 // import './DeployCanvas.css'
 import {DeployedPackage, DeployedObject} from './DeployedObjects'
-// import LoadingOverlay from 'react-loading-overlay-ts';
+import { ScaleLoader } from 'react-spinners';
+import LoadingOverlay from 'react-loading-overlay-ts';
 // import ScaleLoader from "react-spinners/ScaleLoader";
 // import { SPINNER_COLORS } from '../utils/theme';
 
@@ -113,30 +114,30 @@ function DeployCanvas (
             structType = undefined
           }
           
-          // return <DeployedObject
-          //   address={objectId}
-          //   fields={objectData.fields}
-          //   packageAddress={splitFullName[0]}
-          //   moduleName={splitFullName[1]}
-          //   objectName={splitFullName[2]}
-          //   typeParameter={structType}
-          //   shared={shared}
-          //   updateHandler={updateObjectByAddress}
-          //   dragStartHandler={handleDragStart}
-          //   dragEnterHandler={handleDragEnter}
-          //   dragLeaveHandler={handleDragLeave}
-          //   dropHandler={handleDrop}
-          //   refreshHandler={updateDeployedObjects}
-          //   id={id}
-          //   removeDeployedObject={props.removeDeployedObject}
-          // />;
+          return <DeployedObject
+            address={objectId}
+            fields={objectData.fields}
+            packageAddress={splitFullName[0]}
+            moduleName={splitFullName[1]}
+            objectName={splitFullName[2]}
+            typeParameter={structType}
+            shared={shared}
+            updateHandler={updateObjectByAddress}
+            dragStartHandler={handleDragStart}
+            dragEnterHandler={handleDragEnter}
+            dragLeaveHandler={handleDragLeave}
+            dropHandler={handleDrop}
+            refreshHandler={updateDeployedObjects}
+            id={id}
+            removeDeployedObject={props.removeDeployedObject}
+          />;
         }
       });
     });
 
-    // Promise.all(objects).then(async (objects) => {
-    //   await setDeployedObjects(objects);
-    // });
+    Promise.all(objects).then(async (objects) => {
+      await setDeployedObjects(objects);
+    });
 
     await props.setIsOverlayActive(false);
 
@@ -174,23 +175,23 @@ function DeployCanvas (
             structType = undefined
           }
           
-          // object = <DeployedObject
-          //   address={address}
-          //   fields={objectData.fields}
-          //   packageAddress={splitFullName[0]}
-          //   moduleName={splitFullName[1]}
-          //   objectName={splitFullName[2]}
-          //   shared={shared}
-          //   typeParameter={structType}
-          //   updateHandler={updateObjectByAddress}
-          //   dragStartHandler={handleDragStart}
-          //   dragEnterHandler={handleDragEnter}
-          //   dragLeaveHandler={handleDragLeave}
-          //   dropHandler={handleDrop}
-          //   refreshHandler={updateDeployedObjects}
-          //   id={object?.props.id}
-          //   removeDeployedObject={props.removeDeployedObject}
-          // />;
+          object = <DeployedObject
+            address={address}
+            fields={objectData.fields}
+            packageAddress={splitFullName[0]}
+            moduleName={splitFullName[1]}
+            objectName={splitFullName[2]}
+            shared={shared}
+            typeParameter={structType}
+            updateHandler={updateObjectByAddress}
+            dragStartHandler={handleDragStart}
+            dragEnterHandler={handleDragEnter}
+            dragLeaveHandler={handleDragLeave}
+            dropHandler={handleDrop}
+            refreshHandler={updateDeployedObjects}
+            id={object?.props.id}
+            removeDeployedObject={props.removeDeployedObject}
+          />;
         }
       });
       }
@@ -249,38 +250,40 @@ function DeployCanvas (
 
   return (
     <div>
-    {/* // <LoadingOverlay 
-    //     className="deploy-canvas tutorial-deploy-canvas"
-    //     active={props.isOverlayActive}
-    //     spinner={
-    //       <ScaleLoader
-    //         color={SPINNER_COLORS[props.theme].primaryAndSecondary[Math.floor(Math.random() * SPINNER_COLORS[props.theme].primaryAndSecondary.length)]}
-    //       />
-    //     }
-    //     // text='Loading objects...'
-    //     fadeSpeed={100}
-    //     styles={{
-    //       overlay: (base) => ({
-    //         ...base,
-    //         background: 'hsl(var(--b3))',
-    //         opacity: '0.7',
-    //       }),
-    //       // wrapper: {
-    //       //   width: '90%',
-    //       //   height: '100%',
-    //       // }
-    //     }}
-    //   > */}
+      <LoadingOverlay 
+        className="deploy-canvas tutorial-deploy-canvas"
+        active={props.isOverlayActive}
+        spinner={
+          <ScaleLoader
+            // color={SPINNER_COLORS[props.theme].primaryAndSecondary[Math.floor(Math.random() * SPINNER_COLORS[props.theme].primaryAndSecondary.length)]}
+            color="#003e4d"
+          />
+        }
+        text='Loading objects...'
+        fadeSpeed={100}
+        styles={{
+          overlay: (base) => ({
+            ...base,
+            background: 'hsl(var(--b3))',
+            opacity: '0.7',
+          }),
+          wrapper: {
+            width: '90%',
+            height: '100%',
+          }
+        }}
+      >
         {/* <ResponsiveMasonry >
           <Masonry > */}
-            {/* {deployedObjects} */}
+            {deployedObjects}
           {/* </Masonry>
         </ResponsiveMasonry> */}
         <div className="toast toast-end">
           {props.toasts}
         </div>
+        </LoadingOverlay>
       </div>  
-    // </LoadingOverlay>
+    
   )
 }
 
