@@ -275,7 +275,7 @@ function BuildCanvas(
             value={props.code}
             onChange={handleEditorChange}
             theme={"NightOwl"}
-            className="step5"
+            className="max-w-full"
           />
           {
             props.showError &&

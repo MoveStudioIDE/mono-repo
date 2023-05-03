@@ -10,7 +10,7 @@ function Header(
   }
 ) {
   return (
-    <div className="navbar">
+    <div className="navbar w-screen">
       <div className="flex-none">
         <div className="dropdown dropdown-bottom">
           <button className="btn btn-square btn-ghost">
