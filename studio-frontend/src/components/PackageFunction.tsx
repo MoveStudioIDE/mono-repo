@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+// import { ConnectButton, useWallet, WalletKitProvider } from "@mysten/wallet-kit";
+import { ConnectButton, useWallet, useSuiProvider } from '@suiet/wallet-kit';
+import { extractMutableReference, extractReference, extractStructTag, TransactionBlock } from '@mysten/sui.js';
 import { shortenAddress } from '../utils/address-shortener';
-import { extractMutableReference, extractReference, extractStructTag } from '@mysten/sui.js';
-import { useWallet } from '@suiet/wallet-kit';
 
 
 function PackageFunction(
@@ -185,7 +186,7 @@ function PackageFunction(
 
     console.log('function arguments', functionArguments)
 
-    setfunctionArguments(functionArguments)
+    // setfunctionArguments(functionArguments)
 
     return functionParams;
   }
@@ -223,10 +224,10 @@ function PackageFunction(
 
     console.log('function arguments after', functionTypeArguments)
 
-    setfunctionArguments(functionArguments);
+    // setfunctionArguments(functionArguments);
   }
 
-  // console.log('function arugments outside', functionArguments)
+  console.log('function arugments outside', functionArguments)
 
   const handleExecuteMoveCall = async () => {
     console.log('execute move call')
@@ -247,19 +248,19 @@ function PackageFunction(
 
     let moveCallTxn;
 
+    const tx = new TransactionBlock();
+    tx.moveCall({
+      target: '0x2::devnet_nft::mint',
+      arguments: [
+        tx.pure('name'),
+        tx.pure('capy'),
+        tx.pure('https://cdn.britannica.com/94/194294-138-B2CF7780/overview-capybara.jpg?w=800&h=450&c=crop'),
+      ],
+    })
+
     try {
-      moveCallTxn = await wallet.signAndExecuteTransaction({
-        transaction: {
-          kind: 'moveCall',
-          data: {
-            packageObjectId: props.packageAddress,
-            module: props.moduleName,
-            function: functionName,
-            typeArguments: functionTypeArguments,
-            arguments: functionArguments,
-            gasBudget: 300000
-          }
-        }
+      moveCallTxn = await wallet.signAndExecuteTransactionBlock({
+        transactionBlock: tx as any,
       });
     } catch (e) {
       console.log('error', e)
@@ -275,11 +276,11 @@ function PackageFunction(
 
     console.log('move call txn', moveCallTxn);
 
-    if (moveCallTxn.effects.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
-      props.setSuccessTxn(moveCallTxn.certificate.transactionDigest);
-    } else {
-      props.setFailTxn(moveCallTxn.certificate.transactionDigest);
-    }
+    // if (moveCallTxn.effects.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
+    //   props.setSuccessTxn(moveCallTxn.certificate.transactionDigest);
+    // } else {
+    //   props.setFailTxn(moveCallTxn.certificate.transactionDigest);
+    // }
 
     props.refreshHandler();
   }

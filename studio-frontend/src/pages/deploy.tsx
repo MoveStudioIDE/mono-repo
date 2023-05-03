@@ -42,8 +42,8 @@ function DeployPage() {
   const [deployedObjects, setDeployedObjects] = useState<DeployedPackageInfo[]>([]);
   // const { connected, getAccounts, signAndExecuteTransaction } = useWallet();
   const wallet = useWallet()
-  // console.log('chain', wallet.chain)
-  // console.log('chains', wallet.chains)
+  console.log('chain', wallet.chain)
+  console.log('chains', wallet.chains)
 
   const [toasts, setToasts] = useState<JSX.Element | undefined>();
   // const [transaction, setTransaction] = useState<(JSX.Element | undefined)>();
@@ -52,8 +52,11 @@ function DeployPage() {
   const [runTutorial, setRunTutorial] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
+  
+
   // Alert the user if they leave the page when they have deployed objects in the session
   useEffect(() => {
+    console.log('deployedObjects', deployedObjects)
     if (deployedObjects.length === 0) return;
     window.onbeforeunload = function() {
       return ""
@@ -64,16 +67,16 @@ function DeployPage() {
     console.log('toasts', toasts);
   }, [toasts]);
 
-  // useEffect(() => {
-  //   if (localStorage.getItem('preferredSuiWallet') === 'Suiet') {
-  //     alert('Suiet wallet is curently not supported in this version of Move Studio IDE, please use Sui (recommended) or Martian wallet');
-  //     return;
-  //   }
+  useEffect(() => {
+    if (localStorage.getItem('preferredSuiWallet') === 'Suiet') {
+      alert('Suiet wallet is curently not supported in this version of Move Studio IDE, please use Sui (recommended) or Martian wallet');
+      return;
+    }
 
-  //   if(wallet.connected && runTutorial && stepIndex === 1) {
-  //     setStepIndex(2);
-  //   }
-  // }, [wallet.connected])
+    if(wallet.connected && runTutorial && stepIndex === 1) {
+      setStepIndex(2);
+    }
+  }, [wallet.connected])
 
   useEffect(() => {
     if (runTutorial && stepIndex === 2 && currentProject?.package === 'demoPackage') {
@@ -120,8 +123,59 @@ function DeployPage() {
     // setStepIndex(0);
   }
 
+  const pauseTutorial = () => {
+    if (runTutorial) {
+      // setRunTutorial(false);
+      setStepIndex(2);
+    }
+  }
+
+  const tutorialCallback = (data: any) => {
+    const { action, index, type, status } = data;
+    console.log('tutorialCallback', data);
+    if (action === 'close') {
+      setRunTutorial(false);
+      setStepIndex(0); 
+      return;
+    }
+    if (action === 'next' && type === 'step:after') {
+      if (index === 1 && !wallet.connected) {
+        alert('Please connect your Sui wallet to continue with the tutorial. (Note: the Suiet wallet is currently not supported)')
+        return;
+      }
+      if (index === 2 && currentProject?.package !== 'demoPackage') {
+        alert('Select the demoPackage project to continue with the tutorial.')
+        return;
+      }
+      // if (index === 3 && deployedObjects.length === 0) {
+      //   alert('Deploy the demoPackage project to continue with the tutorial.')
+      //   return;
+      // }
+      setStepIndex(index + 1);
+      return
+    }
+    if (action === 'prev' && type === 'step:after') {
+      setStepIndex(index - 1);
+      return;
+    }
+    if (status === 'finished') {
+      setRunTutorial(false);
+      setStepIndex(0);
+      return
+    }
+    if (status === 'skipped' && index === 1) {
+      setRunTutorial(false);
+      return
+    }
+    if (status === 'skipped' && index !== 1) {
+      setRunTutorial(false);
+      setStepIndex(0);
+      return
+    }
+  }
+
   const resetCache = () => {
-    const confirmReset = window.confirm("This will clear all of your projects and reset the demo project. Press OK to continue.")
+    const confirmReset = confirm("This will clear all of your projects and reset the demo project. Press OK to continue.")
 
     if (confirmReset === false) {
       alert('Reset cancelled.')
@@ -155,7 +209,7 @@ function DeployPage() {
       <div className="alert alert-info">
         <div>
           <ScaleLoader
-            color="#003e4d"
+            color={"#003e4d"}
             height={20}
             // width={15}
           />
@@ -175,11 +229,11 @@ function DeployPage() {
           <div>
             <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span>Successful transaction</span>
-            {/* <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+            <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
               <button>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
               </button>
-            </a> */}
+            </a>
             <a>
               <button onClick={() => setToasts(undefined)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -239,11 +293,11 @@ function DeployPage() {
             <div>
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span>Transaction failed</span>
-              {/* <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+              <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
                 <button >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
                 </button>
-              </a> */}
+              </a>
               <a>
                 <button onClick={() => setToasts(undefined)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -340,7 +394,7 @@ function DeployPage() {
           <div>
             {/* <button className="btn  btn-xs"> */}
             <ScaleLoader
-              color="#003e4d"
+              color={"#003e4d"}
               height={20}
               // width={15}
             />
@@ -379,15 +433,13 @@ function DeployPage() {
         modules: compiledModulesAndDependencies.modules.map((m: any) => Array.from(fromB64(m))),
         dependencies: compiledModulesAndDependencies.dependencies.map((addr: string) =>
           normalizeSuiObjectId(addr)
-        )}
+            )}
       );
 
       tx.transferObjects([upgradeCap], tx.pure(wallet.address));
 
       try {
-        const publishTxn = await wallet.signAndExecuteTransactionBlock({
-          transactionBlock: tx as any,
-        });
+        const publishTxn = await wallet.signAndExecuteTransactionBlock({ transactionBlock: tx as any });
   
         return publishTxn;
       } catch (error: any) {
@@ -538,8 +590,10 @@ function DeployPage() {
         );
         
       });
+    }).finally(() => {
+      setIsOverlayActive(false);
     });
-    setIsOverlayActive(false);
+    // setIsOverlayActive(false);
   }
 
   const addExistingObject = (objectId: string) => {
@@ -599,66 +653,13 @@ function DeployPage() {
 
   return (
     <div className="tutorial-deploy-header">
-      {/* <Joyride
-        // tooltipComponent={Tooltip}
-        run={runTutorial}
-        steps={steps as any[]}
-        continuous={true}
-        // showProgress={true}
-        // showSkipButton={true}
-        debug={true}
-        disableOverlayClose={true}
-        stepIndex={stepIndex}
-        spotlightClicks={true}
-        callback={tutorialCallback}
-        showSkipButton={true}
-        styles={{
-            options: {
-              arrowColor: 'hsl(var(--b2))',
-              backgroundColor: 'hsl(var(--b2))',
-              overlayColor: 'hsl(var(--b3))',
-              // primaryColor: 'hsl(var(--inc))',
-              textColor: `hsl(var(--n${SPINNER_COLORS[theme].scheme === 'light' ? '' : 'c'}))`,
-              // width: 900,
-              zIndex: 1000,
-            }, 
-            tooltip: {
-              borderRadius: "25px"
-            },
-            buttonNext: {
-              backgroundColor: 'hsl(var(--su))',
-              color: 'hsl(var(--suc))',
-              borderRadius: "15px",
-              fontSize: "1rem"
-            },
-            buttonBack: {
-              backgroundColor: 'hsl(var(--wa))',
-              color: 'hsl(var(--wac))',
-              borderRadius: "15px",
-              fontSize: "1rem"
-            },
-            buttonClose: {
-              // backgroundColor: 'hsl(var(--er))',
-              // color: 'hsl(var(--erc))',
-              // borderRadius: "15px",
-              // fontSize: "1rem"
-            },
-            buttonSkip: {
-              backgroundColor: 'hsl(var(--er))',
-              color: 'hsl(var(--erc))',
-              borderRadius: "15px",
-              fontSize: "1rem"
-            },
-            
-          }}
-      /> */}
+
       <PageLayout
-        // page="deploy"
         header={
           <Header/>
         }
         sidebar={
-          <DeploySidebar
+          <DeploySidebar 
             projectList={projectList}
             currentProject={currentProject}
             changeProject={handleProjectChange}
@@ -668,21 +669,17 @@ function DeployPage() {
           />
         }
         canvas={
-          <DeployCanvas
-            deployedObjects={deployedObjects}
-            toasts={toasts}
-            isOverlayActive={isOverlayActive}
-            setIsOverlayActive={setIsOverlayActive}
-            setPendingTxn={setPendingTxn}
-            setSuccessTxn={setSuccessTxn}
-            setFailTxn={setFailTxn}
-            removeDeployedObject={removeDeployedObject}
-            rearrangeDeployedObjects={rearrangeDeployedObjects}
-          />
-        }
-        // canvas={
-        //   <div/>
-        // }
+        <DeployCanvas 
+          isOverlayActive={isOverlayActive}
+          deployedObjects={deployedObjects}
+          toasts={toasts}
+          setPendingTxn={setPendingTxn}
+          setSuccessTxn={setSuccessTxn}
+          setFailTxn={setFailTxn}
+          removeDeployedObject={removeDeployedObject}
+          rearrangeDeployedObjects={rearrangeDeployedObjects}
+          setIsOverlayActive={setIsOverlayActive}
+        />}
       />
     </div>
   );

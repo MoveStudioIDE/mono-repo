@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { compile, test } from './compile';
-// import { getObjectDetails, getPackageDetails } from './object-details';
+import { getObjectDetails, getPackageDetails } from './object-details';
 
 const app = express();
 const portHttp = 80;
@@ -67,34 +67,34 @@ app.post('/test', async (req, res) => {
 
 });
 
-// app.post('/object-details', async (req, res) => {
-//   const objectId = req.body.objectId as string;
-//   const rpc = req.body.rpc as string;
+app.post('/object-details', async (req, res) => {
+  const objectId = req.body.objectId as string;
+  const rpc = req.body.rpc as string;
 
-//   console.log('Retrieving object details for: ' + objectId)
+  console.log('Retrieving object details for: ' + objectId)
 
-//   // console.log(objectId);
+  // console.log(objectId);
 
-//   const objectDetails = await getObjectDetails(objectId, rpc);
+  const objectDetails = await getObjectDetails(objectId, rpc);
 
-//   // console.log(objectDetails);
+  // console.log(objectDetails);
 
-//   res.send(objectDetails);
-// });
+  res.send(objectDetails);
+});
 
-// app.post('/package-details', async (req, res) => {
-//   const packageId = req.body.packageId as string;
-//   const rpc = req.body.rpc as string;
+app.post('/package-details', async (req, res) => {
+  const packageId = req.body.packageId as string;
+  const rpc = req.body.rpc as string;
 
-//   // console.log(packageId);
-//   console.log('Retrieving package details for: ' + packageId)
+  // console.log(packageId);
+  console.log('Retrieving package details for: ' + packageId)
 
-//   const packageDetails = await getPackageDetails(packageId, rpc);
+  const packageDetails = await getPackageDetails(packageId, rpc);
 
-//   // console.log(packageDetails);
+  // console.log(packageDetails);
 
-//   res.send(packageDetails);
-// });
+  res.send(packageDetails);
+});
 
 app.listen(process.env.PORT || portHttp, () => {
   console.log(`REST API is listening on port: ${process.env.PORT || portHttp}.`);

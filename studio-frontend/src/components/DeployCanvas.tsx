@@ -5,6 +5,7 @@ import { DeployedPackageInfo } from '../types/project-types';
 import {DeployedPackage, DeployedObject} from './DeployedObjects'
 import { ScaleLoader } from 'react-spinners';
 import LoadingOverlay from 'react-loading-overlay-ts';
+import { useWallet } from '@suiet/wallet-kit';
 // import ScaleLoader from "react-spinners/ScaleLoader";
 // import { SPINNER_COLORS } from '../utils/theme';
 
@@ -32,7 +33,7 @@ function DeployCanvas (
   const [draggedId, setDraggedId] = useState<string | undefined>(undefined)
   const [draggedOverId, setDraggedOverId] = useState<string | undefined>(undefined)
 
-  // const wallet = useWallet();
+  const wallet = useWallet();
   // const {
   //   getObject, 
   //   getNormalizedMoveModulesByPackage
@@ -59,7 +60,7 @@ function DeployCanvas (
         return;
       }
 
-      // console.log('objectId', objectId)
+      console.log('objectId', objectId)
 
       // return getObject(objectId).then((objectData) => {
       //   console.log('objectData', objectData);
@@ -68,18 +69,19 @@ function DeployCanvas (
       //   console.log(err)
       // });
 
-      return axios.post(`${BACKEND_URL}object-details`, {objectId: objectId/*, rpc: wallet.chain?.rpcUrl*/}).then((res) => {
+      return axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
         console.log('res', res);
-        if (res == undefined || res.data.status != 'Exists') {
+        if (res == undefined || res.data.error != undefined) {
+          console.log('removing')
           props.removeDeployedObject(id)
           return;
         }
 
-        const objectData = res.data.details.data;
-        const shared = res.data.details.owner.hasOwnProperty('Shared')
+        const objectData = res.data.data.content
+        // const shared = res.data.details.owner.hasOwnProperty('Shared')
         if (objectData.dataType == 'package') {
 
-          return axios.post(`${BACKEND_URL}package-details`, {packageId: objectId/*, rpc: wallet.chain?.rpcUrl*/}).then((res) => {
+          return axios.post(`${BACKEND_URL}package-details`, {packageId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
 
             const packageDetails = res.data;
 
@@ -121,7 +123,7 @@ function DeployCanvas (
             moduleName={splitFullName[1]}
             objectName={splitFullName[2]}
             typeParameter={structType}
-            shared={shared}
+            shared={false}//shared}
             updateHandler={updateObjectByAddress}
             dragStartHandler={handleDragStart}
             dragEnterHandler={handleDragEnter}
@@ -154,13 +156,13 @@ function DeployCanvas (
       console.log(object)
       if (object?.props.address == address) {
         axios.post(`${BACKEND_URL}object-details`, {objectId: address}).then((res) => {
-        console.log('res', res);
+        console.log('object details res', res);
         if (res == undefined || res.data.status != 'Exists') {
           return;
         }
 
         const objectData = res.data.details.data;
-        const shared = res.data.details.owner.hasOwnProperty('Shared')
+        // const shared = res.data.details.owner.hasOwnProperty('Shared')
         if (objectData.dataType == 'package') {
           return;
         } else if (objectData.dataType == 'moveObject') {
@@ -181,7 +183,7 @@ function DeployCanvas (
             packageAddress={splitFullName[0]}
             moduleName={splitFullName[1]}
             objectName={splitFullName[2]}
-            shared={shared}
+            shared={false}//shared}
             typeParameter={structType}
             updateHandler={updateObjectByAddress}
             dragStartHandler={handleDragStart}
