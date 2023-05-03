@@ -6,6 +6,7 @@ import { Project } from "../types/project-types";
 import axios from "axios";
 import { IndexedDb } from "../db/ProjectsDB";
 import BuildCanvas from "../components/BuildCanvas";
+import ScaleLoader from "react-spinners/ScaleLoader";
 
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
@@ -98,7 +99,6 @@ function BuildPage() {
   const getProjects = async () => {
     indexedDb = new IndexedDb('test');
     await indexedDb.createObjectStore(['projects'], {keyPath: 'package'});
-    // console.log('db', indexedDb);
     const allProjects = await indexedDb.getAllKeys('projects');
     console.log('projectList', allProjects);
     setProjectList(allProjects);
@@ -118,11 +118,11 @@ function BuildPage() {
     setToast(
       <div className="alert alert-info">
         <div>
-          {/* <ScaleLoader
-            color={SPINNER_COLORS[theme].infoContent}
+          <ScaleLoader
+            color={"#003e4d"}
             height={20}
             // width={15}
-          /> */}
+          />
           <span className="normal-case" style={{color: 'hsl(var(--inc))'}} >Compiling...</span>
         </div>
       </div>
@@ -205,11 +205,11 @@ function BuildPage() {
     setToast(
       <div className="alert alert-info">
         <div>
-          {/* <ScaleLoader
-            color={SPINNER_COLORS[theme].infoContent}
+          <ScaleLoader
+            color={"#003e4d"}
             height={20}
             // width={15}
-          /> */}
+          />
           <span className="normal-case" style={{color: 'hsl(var(--inc))'}} >Testing...</span>
         </div>
       </div>
@@ -808,8 +808,9 @@ function BuildPage() {
   }
 
   return (
+    <div>
       <PageLayout 
-        header={<Header/>}
+        header={<Header connectGithub={true} resetCache={resetCache} resetDemo={resetDemo}/>}
         sidebar={
           <BuildPageSidebar
             projectList={projectList}
@@ -853,6 +854,10 @@ function BuildPage() {
           />
         }
       />
+      <div className="toast toast-end">
+        {!showError && !showTestResults && toast}
+      </div>
+    </div>
   )
 }
 

@@ -168,7 +168,7 @@ function BuildPageSidebar (
         
     props.changeProject(event.target.value);
     
-    const moduleSelect = document.getElementById('moduleSelector') as HTMLSelectElement;
+    const moduleSelect = document.getElementById('projectSelector') as HTMLSelectElement;
     moduleSelect.value = '**default';
 
     

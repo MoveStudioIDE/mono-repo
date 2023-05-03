@@ -39,6 +39,9 @@ export class IndexedDb {
   }
 
   public async getAllKeys(tableName: string) {
+    if (!this.db) {
+      return [];
+    }
     const tx = this.db.transaction(tableName, 'readonly');
     const store = tx.objectStore(tableName);
     const result = await store.getAllKeys();
