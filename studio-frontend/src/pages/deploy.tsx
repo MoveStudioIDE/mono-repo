@@ -598,9 +598,9 @@ function DeployPage() {
 
   const addExistingObject = (objectId: string) => {
 
-    if (runTutorial && stepIndex === 7) {
-      setStepIndex(stepIndex + 1);
-    }
+    // if (runTutorial && stepIndex === 7) {
+    //   setStepIndex(stepIndex + 1);
+    // }
 
     const manualPackageName = prompt('Enter name of existing package. (Leave blank if object)')
     const existingObject = {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: objectId};
@@ -652,8 +652,7 @@ function DeployPage() {
 
 
   return (
-    <div className="tutorial-deploy-header">
-
+    <div>
       <PageLayout
         header={
           <Header/>

@@ -51,7 +51,7 @@ function DeployCanvas (
 
   const updateDeployedObjects = async () => {
     props.setIsOverlayActive(true);
-    const objects = props.deployedObjects.map((deployedPackageInfo) => {
+    const objects = props.deployedObjects.map(async (deployedPackageInfo) => {
 
       const objectId = deployedPackageInfo.address;
       const id = deployedPackageInfo.id;
@@ -68,74 +68,93 @@ function DeployCanvas (
       // }).catch((err) => {
       //   console.log(err)
       // });
+    
+      let res;
 
-      return axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
-        console.log('res', res);
-        if (res == undefined || res.data.error != undefined) {
-          console.log('removing')
-          props.removeDeployedObject(id)
-          return;
-        }
-
-        const objectData = res.data.data.content
-        // const shared = res.data.details.owner.hasOwnProperty('Shared')
-        if (objectData.dataType == 'package') {
-
-          return axios.post(`${BACKEND_URL}package-details`, {packageId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
-
-            const packageDetails = res.data;
-
-            return <DeployedPackage
-              id={id}
-              address={objectId}
-              modules={packageDetails}
-              packageName={deployedPackageInfo.name}
-              refreshHandler={updateDeployedObjects}
-              setPendingTxn={props.setPendingTxn}
-              setSuccessTxn={props.setSuccessTxn}
-              setFailTxn={props.setFailTxn}
-              removeDeployedObject={props.removeDeployedObject}
-              dragStartHandler={handleDragStart}
-              dragEnterHandler={handleDragEnter}
-              dragLeaveHandler={handleDragLeave}
-              dropHandler={handleDrop}
-            />;
-
-          }); 
-
-          
-        } else if (objectData.dataType == 'moveObject') {
-          const fullName = objectData.type;
-          let structType = fullName.split('<').pop().split('>')[0]
-          const fullNameWithoutStruct = fullName.split('<')[0]
-          const splitFullName = fullNameWithoutStruct.split('::');
-          console.log("SPLIT FULL NAME", splitFullName)
-          console.log("STRUCT TYPE", structType)
-
-          if (!(fullName.includes('<') && fullName.includes('>'))) {
-            structType = undefined
+      // HOTFIX: retry until object is founded
+      while(true) {
+        try {
+          res = await axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl});
+          if (res == undefined || res.data.error != undefined) {
+            console.log('not removing')
+            // props.removeDeployedObject(id)
+            continue;
           }
-          
-          return <DeployedObject
+          break;
+        } catch (err) {
+          console.log(err)
+        }
+      }
+
+      // const res = await axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl});
+
+      // return axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
+      console.log('res', res);
+      if (res == undefined || res.data.error != undefined) {
+        console.log('removing')
+        props.removeDeployedObject(id)
+        return;
+      }
+
+      const objectData = res.data.data.content
+      // const shared = res.data.details.owner.hasOwnProperty('Shared')
+      if (objectData.dataType == 'package') {
+
+        return axios.post(`${BACKEND_URL}package-details`, {packageId: objectId, rpc: wallet.chain?.rpcUrl}).then((res) => {
+
+          const packageDetails = res.data;
+
+          return <DeployedPackage
+            id={id}
             address={objectId}
-            fields={objectData.fields}
-            packageAddress={splitFullName[0]}
-            moduleName={splitFullName[1]}
-            objectName={splitFullName[2]}
-            typeParameter={structType}
-            shared={false}//shared}
-            updateHandler={updateObjectByAddress}
+            modules={packageDetails}
+            packageName={deployedPackageInfo.name}
+            refreshHandler={updateDeployedObjects}
+            setPendingTxn={props.setPendingTxn}
+            setSuccessTxn={props.setSuccessTxn}
+            setFailTxn={props.setFailTxn}
+            removeDeployedObject={props.removeDeployedObject}
             dragStartHandler={handleDragStart}
             dragEnterHandler={handleDragEnter}
             dragLeaveHandler={handleDragLeave}
             dropHandler={handleDrop}
-            refreshHandler={updateDeployedObjects}
-            id={id}
-            removeDeployedObject={props.removeDeployedObject}
           />;
+
+        }); 
+
+        
+      } else if (objectData.dataType == 'moveObject') {
+        const fullName = objectData.type;
+        let structType = fullName.split('<').pop().split('>')[0]
+        const fullNameWithoutStruct = fullName.split('<')[0]
+        const splitFullName = fullNameWithoutStruct.split('::');
+        console.log("SPLIT FULL NAME", splitFullName)
+        console.log("STRUCT TYPE", structType)
+
+        if (!(fullName.includes('<') && fullName.includes('>'))) {
+          structType = undefined
         }
-      });
+        
+        return <DeployedObject
+          address={objectId}
+          fields={objectData.fields}
+          packageAddress={splitFullName[0]}
+          moduleName={splitFullName[1]}
+          objectName={splitFullName[2]}
+          typeParameter={structType}
+          shared={false}//shared}
+          updateHandler={updateObjectByAddress}
+          dragStartHandler={handleDragStart}
+          dragEnterHandler={handleDragEnter}
+          dragLeaveHandler={handleDragLeave}
+          dropHandler={handleDrop}
+          refreshHandler={updateDeployedObjects}
+          id={id}
+          removeDeployedObject={props.removeDeployedObject}
+        />;
+      }
     });
+    // });
 
     Promise.all(objects).then(async (objects) => {
       await setDeployedObjects(objects);
@@ -251,9 +270,8 @@ function DeployCanvas (
   }
 
   return (
-    <div>
       <LoadingOverlay 
-        className="deploy-canvas tutorial-deploy-canvas"
+        className="flex flex-auto flex-wrap justify-center content-center items-center min-w-full min-h-full"  
         active={props.isOverlayActive}
         spinner={
           <ScaleLoader
@@ -269,10 +287,10 @@ function DeployCanvas (
             background: 'hsl(var(--b3))',
             opacity: '0.7',
           }),
-          wrapper: {
-            width: '90%',
-            height: '100%',
-          }
+          // wrapper: {
+          //   width: '90%',
+          //   height: '100%',
+          // }
         }}
       >
         {/* <ResponsiveMasonry >
@@ -283,8 +301,7 @@ function DeployCanvas (
         <div className="toast toast-end">
           {props.toasts}
         </div>
-        </LoadingOverlay>
-      </div>  
+      </LoadingOverlay>
     
   )
 }

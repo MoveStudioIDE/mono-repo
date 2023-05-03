@@ -257,7 +257,7 @@ function BuildPageSidebar (
 
   //---Render---//
   return (
-    <div style={{overflow: "auto"}} className="bg-base-100 h-full">
+    <div style={{overflow: "auto"}} className="h-full">
       <div className="card w-full card-compact">
       <div className="card-body -mt-3 ">
         <div className="form-control w-full">

@@ -26,7 +26,7 @@ function PageLayout(
         </div>
         <div 
           className="col-span-1 border-l border-secondary"
-        >
+        > 
           {props.canvas}
         </div>
       </div>

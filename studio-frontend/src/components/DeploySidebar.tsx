@@ -136,7 +136,9 @@ function DeploySidebar(
     }
 
     props.addExistingObject(objectId);
-    event.target.previousSibling.value = '';
+
+    // clear input field
+    (document.getElementById('addObjectInput') as HTMLInputElement).value = '';
   }
 
   const handlePackagePublish = (event: any) => {

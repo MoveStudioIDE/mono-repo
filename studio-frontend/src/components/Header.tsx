@@ -10,7 +10,7 @@ function Header(
   }
 ) {
   return (
-    <div className="navbar bg-base-100">
+    <div className="navbar">
       <div className="flex-none">
         <div className="dropdown dropdown-bottom">
           <button className="btn btn-square btn-ghost">
@@ -30,11 +30,19 @@ function Header(
       </div>
       <div className="flex-none gap-2">
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+          <button className="btn btn-square btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="arcs"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            {/* <div className="avatar btn btn-circle btn-ghost hover:ring hover:ring-primary">
+              <div className="w-12 rounded-full">
+                <img src={daniel} />
+              </div>
+            </div> */}
+          </button>
+          {/* <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
             <div className="w-10 rounded-full">
               <img src="/images/stock/photo-1534528741775-53994a69daeb.jpg" />
             </div>
-          </label>
+          </label> */}
           <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
             {
               props.connectGithub &&
