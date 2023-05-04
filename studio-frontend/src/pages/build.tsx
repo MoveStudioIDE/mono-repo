@@ -9,7 +9,8 @@ import BuildCanvas from "../components/BuildCanvas";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
+// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
+const BACKEND_URL = 'https://api.movestudio.dev/';
 
 function BuildPage() {
 
