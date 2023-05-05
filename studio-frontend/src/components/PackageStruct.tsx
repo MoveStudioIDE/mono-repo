@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { extractMutableReference } from '@mysten/sui.js';
+import { extractMutableReference, extractStructTag } from '@mysten/sui.js';
 import { shortenAddress } from '../utils/address-shortener';
 
 
@@ -24,7 +24,9 @@ function PackageStruct(
   const fields = (props.structDetails as any).fields.map((field: {name: string, type: any}) => {
     console.log('field', field)
     if (typeof field.type == 'object') {
-      console.log('e')
+      console.log('e here')
+
+
 
       if (field.type.Struct != undefined) {
         return (
@@ -64,8 +66,47 @@ function PackageStruct(
             </td>
           </tr>
         )
+      } else if (field.type.Vector != undefined) {
+        if (field.type.Vector.Struct != undefined) {
+          return (
+            <tr>
+            <td className='font-mono whitespace-normal break-words max-w-24 text-center'>{field.name}</td>
+            <td className='font-mono whitespace-normal break-all max-w-72  text-center'>
+            {`Vector<${shortenAddress(field.type.Vector.Struct.address, 3)}::${field.type.Vector.Struct.module}::${field.type.Vector.Struct.name}>`}
+              <label 
+                tabIndex={0} 
+                className="btn btn-circle btn-ghost btn-xs text-info" 
+                onClick={async () => {
+                  navigator.clipboard.writeText(`${field.type.Vector.Struct.address}::${field.type.Vector.Struct.module}::${field.type.Vector.Struct.name}`)
+                  console.log('clipboard', await navigator.clipboard.readText())
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+              </label>
+            </td>
+          </tr>
+          )
+        } else {
+          return (
+            <tr>
+              <td className='font-mono whitespace-normal break-words max-w-24  text-center'>{field.name}</td>
+              <td className='font-mono whitespace-normal break-all max-w-72  text-center'>
+                {`Vector<${field.type.Vector}>`}
+                <label 
+                  tabIndex={0} 
+                  className="btn btn-circle btn-ghost btn-xs text-info" 
+                  onClick={async () => {
+                    navigator.clipboard.writeText(field.type.Vector)
+                    console.log('clipboard', await navigator.clipboard.readText())
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                </label>
+              </td>
+            </tr>
+          )
+        }
       }
-            
     } else {
       return (
         <tr>
