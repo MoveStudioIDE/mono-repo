@@ -10,7 +10,7 @@ function PageLayout(
   return (
     <div 
       style={{display: "grid", gridTemplateColumns: "auto", gridTemplateRows: "70px auto"}}
-      className="h-screen max-w-screen overflow-hidden"
+      className="h-screen max-w-screen overflow-x-hidden "
     >
       <div className="col-span-full row-span-1 border-b border-primary">
         {props.header}
