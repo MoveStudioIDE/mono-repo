@@ -47,7 +47,8 @@ export function DeployedPackage (
 
   const functions = Object.entries(props.modules).flatMap((module: [string, object]) => {
     return Object.entries(module[1]).flatMap((moduleDetails: [string, object]) => {
-      if (moduleDetails[0] == 'exposed_functions') {
+      if (moduleDetails[0] == 'exposedFunctions') {
+        console.log('moduleDetails[1]', moduleDetails[1])
         return Object.entries(moduleDetails[1]).map((func: [string, object]) => {
           return (
             <option className='font-mono' value={`${module[0]}::${func[0]}`}>{`${module[0]}::${func[0]}`}</option>
@@ -58,10 +59,13 @@ export function DeployedPackage (
   });
 
   const entryFunctions = Object.entries(props.modules).flatMap((module: [string, object]) => {
+    console.log('module', module)
     return Object.entries(module[1]).flatMap((moduleDetails: [string, object]) => {
-      if (moduleDetails[0] == 'exposed_functions') {
+      console.log('moduleDetails', moduleDetails)
+      if (moduleDetails[0] == 'exposedFunctions') {
+        console.log('moduleDetails[1]', moduleDetails[1])
         return Object.entries(moduleDetails[1]).map((func: [string, object]) => {
-          if ((func[1] as any).is_entry) {
+          if ((func[1] as any).isEntry) {
             return (
               <option className='font-mono' value={`${module[0]}::${func[0]}`}>{`${module[0]}::${func[0]}`}</option>
             )
