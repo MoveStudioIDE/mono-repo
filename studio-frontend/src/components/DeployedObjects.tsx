@@ -223,6 +223,8 @@ export function DeployedObject (
       return;
     }
 
+    // console.log('field', field);
+
     // TODO: hard fix - fix to be robust for nested structs
     if (field[1] === null) {
       return (
@@ -231,7 +233,16 @@ export function DeployedObject (
           <td className='font-mono whitespace-normal break-words  text-center'>{field[1]}</td>
         </tr>
       )
+    } else if (Array.isArray(field[1])) {
+      return (
+        <tr>
+          <td className='font-mono whitespace-normal break-words text-center'>{field[0]}</td>
+          <td className='font-mono whitespace-normal break-words text-center'>[{field[1].join(', ')}]</td>
+        </tr>
+      )
     } else if (typeof field[1] == 'object') {
+      // console.log('field[1]', field[1])
+      // console.log('typeof field[1]', typeof field[1])
       if (field[1].id != undefined) {
         return (
           <tr>
