@@ -35,7 +35,7 @@ function PackageFunction(
 
   const getFunctionParameterList = () => {
     const params = (props.functionDetails as any).parameters;
-    const typeParams = (props.functionDetails as any).type_parameters;
+    const typeParams = (props.functionDetails as any).typeParameters;
     console.log('params', params)
     console.log('type params', typeParams)
 
@@ -296,7 +296,7 @@ function PackageFunction(
         <h1 className="card-title text-neutral-content font-mono">{functionName}</h1>
         <div className="card-actions">
           {
-            (props.functionDetails as any).is_entry &&
+            (props.functionDetails as any).isEntry &&
             <div className="badge badge-outline badge-secondary">Entry</div>
           }
           <div className="badge badge-outline badge-secondary">{(props.functionDetails as any).visibility}</div>
@@ -305,7 +305,7 @@ function PackageFunction(
           {functionParameterList}
         </div>
         {
-          (props.functionDetails as any).is_entry &&
+          (props.functionDetails as any).isEntry &&
           <button 
             className="btn btn-xs glass" 
             style={{margin:"2px 5px"}}
@@ -344,7 +344,7 @@ function FunctionParameter(
     <label className="input-group input-group-xs w-full" style={{margin: "2px"}}>
       <span className='font-medium'>Arg{props.parameterIndex}</span>
       <div className="tooltip tooltip-primary w-full font-mono" data-tip={props.parameterName}>
-        <input type="text" id={`input${props.parameterIndex}`} placeholder={props.parameterName} className="input input-bordered input-xs italic font-mono w-full" onChange={handleParameterChange} />
+        <input type="text" id={`input${props.parameterIndex}`} placeholder={props.parameterName} className="input input-bordered input-xs italic font-mono w-full focus:outline-none" onChange={handleParameterChange} />
       </div>
     </label>
   )
