@@ -5,6 +5,7 @@ import { shortenAddress } from "../utils/address-shortener";
 import { useAccountBalance, useWallet } from "@suiet/wallet-kit";
 import { decimalify } from "../utils/decimal";
 import { network } from "../utils/network";
+import SettingToggle from "./SettingToggle";
 
 const disabledWallets = [
   // "Martian Sui Wallet",
@@ -28,6 +29,8 @@ function DeploySidebar(
 
   const [isValidObjectId, setIsValidObjectId] = useState(false);
   const [walletIcon, setWalletIcon] = useState('');
+
+  const [ignoreUpgradeCap, setIgnoreUpgradeCap] = useState(false);
 
   useEffect(() => {
     if (wallet.connected) {
@@ -155,6 +158,10 @@ function DeploySidebar(
     // set select back to default
     const select = document.getElementById('projectSelector') as HTMLSelectElement;
     select.value = '**default';
+  }
+
+  const handleSetIgnoreUpgradeCap = (event: any) => {
+    setIgnoreUpgradeCap(event.target.checked);
   }
 
   // console.log('walleticon', walletIcon)
@@ -287,6 +294,19 @@ function DeploySidebar(
               >
                 Add Sui Package
               </button>
+            </div>
+            <div style={{marginTop:"0px", marginBottom:"5px"}}>
+              <span className="font-bold">Coming soon: </span>
+              <SettingToggle
+                label="Ignore upgradeCap"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+              />
+              <SettingToggle
+                label="Automatically add all created objects"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+              />
             </div>
             <div className="card-actions justify-end">
               <button
