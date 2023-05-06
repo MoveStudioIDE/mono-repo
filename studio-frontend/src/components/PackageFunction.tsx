@@ -250,12 +250,9 @@ function PackageFunction(
 
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: '0x2::devnet_nft::mint',
-      arguments: [
-        tx.pure('name'),
-        tx.pure('capy'),
-        tx.pure('https://cdn.britannica.com/94/194294-138-B2CF7780/overview-capybara.jpg?w=800&h=450&c=crop'),
-      ],
+      target: `${props.packageAddress}::${props.moduleName}::${functionName}`,
+      arguments: functionArguments.filter((param) => param != '').map((param) => tx.pure(param)),
+      // typeArguments: functionTypeArguments.filter((param) => param != ''),
     })
 
     try {
@@ -276,11 +273,11 @@ function PackageFunction(
 
     console.log('move call txn', moveCallTxn);
 
-    // if (moveCallTxn.effects.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
-    //   props.setSuccessTxn(moveCallTxn.certificate.transactionDigest);
-    // } else {
-    //   props.setFailTxn(moveCallTxn.certificate.transactionDigest);
-    // }
+    if (moveCallTxn.effects?.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
+      props.setSuccessTxn(moveCallTxn.digest);
+    } else {
+      props.setFailTxn(moveCallTxn.digest);
+    }
 
     props.refreshHandler();
   }
