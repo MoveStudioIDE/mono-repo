@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { ConnectButton, useWallet, useSuiProvider } from '@suiet/wallet-kit';
 import { extractMutableReference, extractReference, extractStructTag, TransactionBlock } from '@mysten/sui.js';
 import { shortenAddress } from '../utils/address-shortener';
+import axios from 'axios';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
+// const BACKEND_URL = 'https://api.movestudio.dev/';
 
 function PackageFunction(
   props: {
@@ -252,13 +255,13 @@ function PackageFunction(
     tx.moveCall({
       target: `${props.packageAddress}::${props.moduleName}::${functionName}`,
       arguments: functionArguments.filter((param) => param != '').map((param) => tx.pure(param)),
-      // typeArguments: functionTypeArguments.filter((param) => param != ''),
+      typeArguments: functionTypeArguments.filter((param) => param != ''),
     })
 
     try {
       moveCallTxn = await wallet.signAndExecuteTransactionBlock({
         transactionBlock: tx as any,
-      });
+      }) as any;
     } catch (e) {
       console.log('error', e)
       console.log('error.message', (e as any).message.includes('wallet not connected'))
@@ -273,7 +276,19 @@ function PackageFunction(
 
     console.log('move call txn', moveCallTxn);
 
-    if (moveCallTxn.effects?.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
+    while (moveCallTxn?.confirmedLocalExecution == false) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (moveCallTxn?.digest == undefined) {
+        return;
+      }
+      moveCallTxn = await axios.post(`${BACKEND_URL}transaction-details`, {digest: moveCallTxn.digest, rpc: wallet.chain?.rpcUrl});
+      // moveCallTxn = await getTransactionBlock({
+      //   digest: moveCallTxn.digest,
+      // });
+      console.log('new moveCallTxn', moveCallTxn);
+    }
+
+    if (moveCallTxn.data.effects?.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
       props.setSuccessTxn(moveCallTxn.digest);
     } else {
       props.setFailTxn(moveCallTxn.digest);
