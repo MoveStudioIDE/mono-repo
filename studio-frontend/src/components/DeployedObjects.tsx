@@ -100,7 +100,7 @@ export function DeployedPackage (
       setSelectedFunction(null);
       console.log('selectedStructDetails', selectedStructDetails)
     } else if (optgroupLabel == 'Package all functions' || optgroupLabel == 'Package entry functions') {
-      const selectedFunctionDetails = (props.modules as any)[selectedModule].exposed_functions[selectedDetail];
+      const selectedFunctionDetails = (props.modules as any)[selectedModule].exposedFunctions[selectedDetail];
       selectedFunctionDetails.name = selectedDetail;
       setSelectedFunction(selectedFunctionDetails);
       setSelectedStruct(null);
@@ -227,7 +227,7 @@ export function DeployedObject (
       return;
     }
 
-    // console.log('field', field);
+    console.log('field', field);
 
     // TODO: hard fix - fix to be robust for nested structs
     if (field[1] === null) {
@@ -238,10 +238,12 @@ export function DeployedObject (
         </tr>
       )
     } else if (Array.isArray(field[1])) {
+
+      
       return (
         <tr>
           <td className='font-mono whitespace-normal break-words text-center'>{field[0]}</td>
-          <td className='font-mono whitespace-normal break-words text-center'>[{field[1].join(', ')}]</td>
+          <td className='font-mono whitespace-normal break-words text-center'>{JSON.stringify(field[1], null, 2)}</td>
         </tr>
       )
     } else if (typeof field[1] == 'object') {
