@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { compile, test } from './compile';
-import { getObjectDetails, getPackageDetails } from './object-details';
+import { getObjectDetails, getPackageDetails, getTransactionDetails } from './object-details';
 
 const app = express();
 const portHttp = 80;
@@ -94,6 +94,20 @@ app.post('/package-details', async (req, res) => {
   // console.log(packageDetails);
 
   res.send(packageDetails);
+});
+
+app.post('/transaction-details', async (req, res) => {
+  const transactionDigest = req.body.digest as string;
+  const rpc = req.body.rpc as string;
+
+  // console.log(transactionDigest);
+  console.log('Retrieving transaction details for: ' + transactionDigest)
+
+  const transactionDetails = await getTransactionDetails(transactionDigest, rpc);
+
+  // console.log(transactionDetails);
+
+  res.send(transactionDetails);
 });
 
 app.listen(process.env.PORT || portHttp, () => {

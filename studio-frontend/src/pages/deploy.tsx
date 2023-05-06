@@ -14,7 +14,7 @@ import axios from "axios";
 import Header from "../components/Header";
 import DeploySidebar from "../components/DeploySidebar";
 import DeployCanvas from "../components/DeployCanvas";
-import { useWallet } from "@suiet/wallet-kit";
+import { useSuiProvider, useWallet } from "@suiet/wallet-kit";
 import { network } from "@/utils/network";
 import { OwnedObjectRef, TransactionBlock, fromB64, normalizeSuiObjectId } from "@mysten/sui.js";
 import { ScaleLoader } from "react-spinners";
@@ -43,8 +43,6 @@ function DeployPage() {
   const [deployedObjects, setDeployedObjects] = useState<DeployedPackageInfo[]>([]);
   // const { connected, getAccounts, signAndExecuteTransaction } = useWallet();
   const wallet = useWallet()
-  console.log('chain', wallet.chain)
-  console.log('chains', wallet.chains)
 
   const [toasts, setToasts] = useState<JSX.Element | undefined>();
   // const [transaction, setTransaction] = useState<(JSX.Element | undefined)>();
@@ -540,8 +538,20 @@ function DeployPage() {
 
       setCurrentProject(null)
 
-      callPublish(res).then((res) => {
-        console.log('res', res);
+      callPublish(res).then(async (res) => {
+        console.log('publis res', res);
+
+        while (res?.confirmedLocalExecution == false) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          if (res?.digest == undefined) {
+            return;
+          }
+          res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: res.digest, rpc: wallet.chain?.rpcUrl});
+          // res = await getTransactionBlock({
+          //   digest: res.digest,
+          // });
+          console.log('new res', res);
+        }
 
         if (res == undefined) {
           return;
@@ -549,7 +559,7 @@ function DeployPage() {
 
         const publishTxnDigest = res.digest;
 
-        const publishTxnCreated = res.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
+        const publishTxnCreated = (res as any).data.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
 
         console.log('res', res)
         console.log('publishTxnCreated', publishTxnCreated);
