@@ -13,14 +13,30 @@ export async function getObjectDetails(objectId: string, rpc?: string) {
   }
   // console.log('provider', provider)
 
-  const objectDetails = await provider.getObject({
-    id: objectId,
-    options: {
-      showContent: true,
-      showDisplay: true,
-    },
-  });
-  console.log('objectDetails', objectDetails)
+  let objectDetails;
+  let count = 0;
+  while(true) {
+    count++;
+    if (count > 10) {
+      return {error: 'timeout'};
+    }
+    // wait 1 second
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      objectDetails = await provider.getObject({
+        id: objectId,
+        options: {
+          showContent: true,
+          showDisplay: true,
+        },
+      });
+      console.log('objectDetails', objectDetails)
+      break
+    } catch (e) {
+      console.log('error', e)
+      continue
+    }
+  }
 
   return objectDetails;
 }
@@ -35,12 +51,27 @@ export async function getPackageDetails(packageId: string, rpc?: string) {
     provider = new JsonRpcProvider();
   }
   // console.log('provider', provider)
-  console.log('2')
-  const packageDetails = await provider.getNormalizedMoveModulesByPackage({
-    package: packageId,
-  });
-  console.log('packageDetails', packageDetails)
-  console.log('3')
+
+  let packageDetails;
+  let count = 0;
+  while(true) {
+    count++;
+    if (count > 10) {
+      return {error: 'timeout'};
+    }
+    // wait 1 second
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      packageDetails = await provider.getNormalizedMoveModulesByPackage({
+        package: packageId,
+      });
+      console.log('packageDetails', packageDetails)
+      break
+    } catch (e) {
+      console.log('error', e)
+      continue
+    }
+  }
   return packageDetails;
 }
 
@@ -56,7 +87,12 @@ export async function getTransactionDetails(transactionDigest: string, rpc?: str
   }
   // console.log('provider', provider)
   let transactionDetails;
+  let count = 0;
   while(true) {
+    count++;
+    if (count > 10) {
+      return {error: 'timeout'};
+    }
     // wait 1 second
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
