@@ -8,11 +8,11 @@ import { IndexedDb } from "../db/ProjectsDB";
 import BuildCanvas from "../components/BuildCanvas";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
-
-// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
-const BACKEND_URL = 'https://api.movestudio.dev/';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
 function BuildPage() {
+
+
 
   const [projectList, setProjectList] = useState<string[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);

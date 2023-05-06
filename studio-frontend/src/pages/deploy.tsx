@@ -14,15 +14,14 @@ import axios from "axios";
 import Header from "../components/Header";
 import DeploySidebar from "../components/DeploySidebar";
 import DeployCanvas from "../components/DeployCanvas";
-import { useWallet } from "@suiet/wallet-kit";
+import { useSuiProvider, useWallet } from "@suiet/wallet-kit";
 import { network } from "@/utils/network";
 import { OwnedObjectRef, TransactionBlock, fromB64, normalizeSuiObjectId } from "@mysten/sui.js";
 import { ScaleLoader } from "react-spinners";
 
 
 
-// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
-const BACKEND_URL = 'https://api.movestudio.dev/';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
 const GAS_BUDGET = 40000;
 
@@ -43,8 +42,6 @@ function DeployPage() {
   const [deployedObjects, setDeployedObjects] = useState<DeployedPackageInfo[]>([]);
   // const { connected, getAccounts, signAndExecuteTransaction } = useWallet();
   const wallet = useWallet()
-  console.log('chain', wallet.chain)
-  console.log('chains', wallet.chains)
 
   const [toasts, setToasts] = useState<JSX.Element | undefined>();
   // const [transaction, setTransaction] = useState<(JSX.Element | undefined)>();
@@ -495,6 +492,8 @@ function DeployPage() {
             </div>
           );
         }
+
+        setIsOverlayActive(false);
       }
     }
 
@@ -538,16 +537,22 @@ function DeployPage() {
 
       setCurrentProject(null)
 
-      callPublish(res).then((res) => {
-        console.log('res', res);
+      callPublish(res).then(async (res: any) => {
+        console.log('publis res', res);
 
-        if (res == undefined) {
+        res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: res?.digest, rpc: wallet.chain?.rpcUrl});
+        // res = await getTransactionBlock({
+        //   digest: res.digest,
+        // });
+        console.log('new res', res);
+
+        if (res == undefined || res.data.error != undefined) {
           return;
         }
 
-        const publishTxnDigest = res.digest;
+        const publishTxnDigest = res.data.digest;
 
-        const publishTxnCreated = res.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
+        const publishTxnCreated = res.data.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
 
         console.log('res', res)
         console.log('publishTxnCreated', publishTxnCreated);
@@ -603,9 +608,32 @@ function DeployPage() {
     //   setStepIndex(stepIndex + 1);
     // }
 
-    const manualPackageName = prompt('Enter name of existing package. (Leave blank if object)')
+    const manualPackageName = objectId == '0x2' ? 'Sui' : prompt('Enter name of existing package. (Leave blank if object)')
     const existingObject = {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: objectId};
     setDeployedObjects([...deployedObjects, existingObject]);
+  }
+
+  const addFromTransactions = async (objectId: string) => {
+    const res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: objectId, rpc: wallet.chain?.rpcUrl});
+
+    const txnCreated = (res as any).data.effects?.created || [];
+
+    const manualPackageName = prompt('Enter name of new package. (Leave blank if object)')
+    const packageInfos = txnCreated?.map((object: any) => {
+      return {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: object.reference.objectId};
+    });
+
+    if (!packageInfos) {
+      return;
+    }
+
+    console.log('packageInfos', packageInfos)
+
+    if (txnCreated) {
+      const newDeployedObjects = deployedObjects.concat(packageInfos);
+      console.log('newDeployedObjects', newDeployedObjects)
+      setDeployedObjects(newDeployedObjects);
+    }
   }
 
   // Remove the specific object from the deployedObjects array
@@ -665,6 +693,7 @@ function DeployPage() {
             changeProject={handleProjectChange}
             publishPackage={handlePackagePublish}
             addExistingObject={addExistingObject}
+            addFromTransactions={addFromTransactions}
             compileError={compileError}
           />
         }

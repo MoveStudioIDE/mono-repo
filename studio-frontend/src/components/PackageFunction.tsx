@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { ConnectButton, useWallet, useSuiProvider } from '@suiet/wallet-kit';
 import { extractMutableReference, extractReference, extractStructTag, TransactionBlock } from '@mysten/sui.js';
 import { shortenAddress } from '../utils/address-shortener';
+import axios from 'axios';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
 function PackageFunction(
   props: {
@@ -35,7 +37,7 @@ function PackageFunction(
 
   const getFunctionParameterList = () => {
     const params = (props.functionDetails as any).parameters;
-    const typeParams = (props.functionDetails as any).type_parameters;
+    const typeParams = (props.functionDetails as any).typeParameters;
     console.log('params', params)
     console.log('type params', typeParams)
 
@@ -250,18 +252,15 @@ function PackageFunction(
 
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: '0x2::devnet_nft::mint',
-      arguments: [
-        tx.pure('name'),
-        tx.pure('capy'),
-        tx.pure('https://cdn.britannica.com/94/194294-138-B2CF7780/overview-capybara.jpg?w=800&h=450&c=crop'),
-      ],
+      target: `${props.packageAddress}::${props.moduleName}::${functionName}`,
+      arguments: functionArguments.filter((param) => param != '').map((param) => tx.pure(param)),
+      typeArguments: functionTypeArguments.filter((param) => param != ''),
     })
 
     try {
       moveCallTxn = await wallet.signAndExecuteTransactionBlock({
         transactionBlock: tx as any,
-      });
+      }) as any;
     } catch (e) {
       console.log('error', e)
       console.log('error.message', (e as any).message.includes('wallet not connected'))
@@ -276,11 +275,20 @@ function PackageFunction(
 
     console.log('move call txn', moveCallTxn);
 
-    // if (moveCallTxn.effects.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
-    //   props.setSuccessTxn(moveCallTxn.certificate.transactionDigest);
-    // } else {
-    //   props.setFailTxn(moveCallTxn.certificate.transactionDigest);
-    // }
+    
+    
+    moveCallTxn = await axios.post(`${BACKEND_URL}transaction-details`, {digest: moveCallTxn.digest, rpc: wallet.chain?.rpcUrl});
+    console.log('new moveCallTxn', moveCallTxn);
+
+    if (moveCallTxn.data.error != undefined) {
+      props.setFailTxn(moveCallTxn.data.error);
+    }
+
+    if (moveCallTxn.data.effects?.status?.status == 'success' ) {
+      props.setSuccessTxn(moveCallTxn.data.digest);
+    } else {
+      props.setFailTxn(moveCallTxn.data.digest);
+    }
 
     props.refreshHandler();
   }
@@ -296,7 +304,7 @@ function PackageFunction(
         <h1 className="card-title text-neutral-content font-mono">{functionName}</h1>
         <div className="card-actions">
           {
-            (props.functionDetails as any).is_entry &&
+            (props.functionDetails as any).isEntry &&
             <div className="badge badge-outline badge-secondary">Entry</div>
           }
           <div className="badge badge-outline badge-secondary">{(props.functionDetails as any).visibility}</div>
@@ -305,7 +313,7 @@ function PackageFunction(
           {functionParameterList}
         </div>
         {
-          (props.functionDetails as any).is_entry &&
+          (props.functionDetails as any).isEntry &&
           <button 
             className="btn btn-xs glass" 
             style={{margin:"2px 5px"}}
@@ -344,7 +352,7 @@ function FunctionParameter(
     <label className="input-group input-group-xs w-full" style={{margin: "2px"}}>
       <span className='font-medium'>Arg{props.parameterIndex}</span>
       <div className="tooltip tooltip-primary w-full font-mono" data-tip={props.parameterName}>
-        <input type="text" id={`input${props.parameterIndex}`} placeholder={props.parameterName} className="input input-bordered input-xs italic font-mono w-full" onChange={handleParameterChange} />
+        <input type="text" id={`input${props.parameterIndex}`} placeholder={props.parameterName} className="input input-bordered input-xs italic font-mono w-full focus:outline-none" onChange={handleParameterChange} />
       </div>
     </label>
   )

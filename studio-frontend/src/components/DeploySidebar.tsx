@@ -5,6 +5,8 @@ import { shortenAddress } from "../utils/address-shortener";
 import { useAccountBalance, useWallet } from "@suiet/wallet-kit";
 import { decimalify } from "../utils/decimal";
 import { network } from "../utils/network";
+import SettingToggle from "./SettingToggle";
+import { isValidTransactionDigest } from "@mysten/sui.js";
 
 const disabledWallets = [
   // "Martian Sui Wallet",
@@ -17,6 +19,7 @@ function DeploySidebar(
     changeProject: (project: string) => void,
     publishPackage: () => void,
     addExistingObject: (objectId: string) => void,
+    addFromTransactions: (transactionId: string) => void,
     compileError: string,
   }
 ) {
@@ -27,7 +30,10 @@ function DeploySidebar(
   } = useAccountBalance();
 
   const [isValidObjectId, setIsValidObjectId] = useState(false);
+  const [isInputValidTransactionDigest, setIsInputValidTransactionDigest] = useState(false);
   const [walletIcon, setWalletIcon] = useState('');
+
+  const [ignoreUpgradeCap, setIgnoreUpgradeCap] = useState(false);
 
   useEffect(() => {
     if (wallet.connected) {
@@ -106,6 +112,12 @@ function DeploySidebar(
     setIsValidObjectId(true);
   }
 
+  const verifyTransactionDigest = (event: any) => {
+    const transactionDigest = event.target.value;
+    
+    setIsInputValidTransactionDigest(isValidTransactionDigest(transactionDigest));
+  }
+
   const handleProjectChange = (event: any) => {
     console.log('handleProjectChange', event.target.value);
     props.changeProject(event.target.value);
@@ -118,7 +130,7 @@ function DeploySidebar(
     }
   }
 
-  const handleObjectAdd = (event: any) => {
+  const handleObjectAdd = () => {
     const objectId = (document.getElementById('addObjectInput') as HTMLInputElement).value;
 
     if (objectId == '' || objectId == undefined) {
@@ -141,12 +153,37 @@ function DeploySidebar(
     (document.getElementById('addObjectInput') as HTMLInputElement).value = '';
   }
 
+  const handleSuiPackageAdd = () => {
+    const addObjectInput = (document.getElementById('addObjectInput') as HTMLInputElement);
+    addObjectInput.value = "0x2";
+
+    handleObjectAdd();
+  }
+
+  const hanldeTransactionDigestAdd = () => {
+    const addObjectInput = (document.getElementById('addTransactionInput') as HTMLInputElement);
+
+    if (addObjectInput.value == '' || addObjectInput.value == undefined) {
+      return;
+    }
+
+    props.addFromTransactions(addObjectInput.value);
+
+    // clear input field
+    addObjectInput.value = '';
+  }
+
+
   const handlePackagePublish = (event: any) => {
     props.publishPackage();
 
     // set select back to default
     const select = document.getElementById('projectSelector') as HTMLSelectElement;
     select.value = '**default';
+  }
+
+  const handleSetIgnoreUpgradeCap = (event: any) => {
+    setIgnoreUpgradeCap(event.target.checked);
   }
 
   // console.log('walleticon', walletIcon)
@@ -271,6 +308,50 @@ function DeploySidebar(
                   </button>
                 </div>
               </div>
+            </div>
+            <div style={{marginTop:"0px", marginBottom:"5px"}}>
+              <button
+                onClick={handleSuiPackageAdd}
+                className="btn btn-xs btn-warning btn-outline badge"
+              >
+                Add Sui Package
+              </button>
+            </div>
+            <div style={{marginTop:"0px", marginBottom:"5px"}} className="tutorial-deploy-add-object">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-bold">Add from transaction digest</span>
+                </label>
+                <div className="input-group input-group-xs">
+                  <input 
+                    id="addTransactionInput"
+                    type="text" 
+                    placeholder="transaction digest" 
+                    className="input input-bordered input-warning w-full max-w-xs input-xs focus:outline-none font-mono"
+                    onChange={verifyTransactionDigest}
+                  />
+                  <button 
+                    className="btn btn-xs btn-outline btn-warning" 
+                    onClick={hanldeTransactionDigestAdd}
+                    disabled={!isInputValidTransactionDigest}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="arcs"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2-2.4-3.5-4.4-3.5h-1.2c-.7-3-3.2-5.2-6.2-5.6-3-.3-5.9 1.3-7.3 4-1.2 2.5-1 6.5.5 8.8M12 19.8V12M16 17l-4 4-4-4"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div style={{marginTop:"0px", marginBottom:"5px"}}>
+              <span className="font-bold">Coming soon: </span>
+              <SettingToggle
+                label="Ignore upgradeCap"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+              />
+              <SettingToggle
+                label="Automatically add all created objects"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+              />
             </div>
             <div className="card-actions justify-end">
               <button

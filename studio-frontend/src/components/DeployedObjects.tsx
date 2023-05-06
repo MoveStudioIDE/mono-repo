@@ -47,7 +47,8 @@ export function DeployedPackage (
 
   const functions = Object.entries(props.modules).flatMap((module: [string, object]) => {
     return Object.entries(module[1]).flatMap((moduleDetails: [string, object]) => {
-      if (moduleDetails[0] == 'exposed_functions') {
+      if (moduleDetails[0] == 'exposedFunctions') {
+        console.log('moduleDetails[1]', moduleDetails[1])
         return Object.entries(moduleDetails[1]).map((func: [string, object]) => {
           return (
             <option className='font-mono' value={`${module[0]}::${func[0]}`}>{`${module[0]}::${func[0]}`}</option>
@@ -58,10 +59,13 @@ export function DeployedPackage (
   });
 
   const entryFunctions = Object.entries(props.modules).flatMap((module: [string, object]) => {
+    console.log('module', module)
     return Object.entries(module[1]).flatMap((moduleDetails: [string, object]) => {
-      if (moduleDetails[0] == 'exposed_functions') {
+      console.log('moduleDetails', moduleDetails)
+      if (moduleDetails[0] == 'exposedFunctions') {
+        console.log('moduleDetails[1]', moduleDetails[1])
         return Object.entries(moduleDetails[1]).map((func: [string, object]) => {
-          if ((func[1] as any).is_entry) {
+          if ((func[1] as any).isEntry) {
             return (
               <option className='font-mono' value={`${module[0]}::${func[0]}`}>{`${module[0]}::${func[0]}`}</option>
             )
@@ -96,7 +100,7 @@ export function DeployedPackage (
       setSelectedFunction(null);
       console.log('selectedStructDetails', selectedStructDetails)
     } else if (optgroupLabel == 'Package all functions' || optgroupLabel == 'Package entry functions') {
-      const selectedFunctionDetails = (props.modules as any)[selectedModule].exposed_functions[selectedDetail];
+      const selectedFunctionDetails = (props.modules as any)[selectedModule].exposedFunctions[selectedDetail];
       selectedFunctionDetails.name = selectedDetail;
       setSelectedFunction(selectedFunctionDetails);
       setSelectedStruct(null);
@@ -223,6 +227,8 @@ export function DeployedObject (
       return;
     }
 
+    console.log('field', field);
+
     // TODO: hard fix - fix to be robust for nested structs
     if (field[1] === null) {
       return (
@@ -231,7 +237,18 @@ export function DeployedObject (
           <td className='font-mono whitespace-normal break-words  text-center'>{field[1]}</td>
         </tr>
       )
+    } else if (Array.isArray(field[1])) {
+
+      
+      return (
+        <tr>
+          <td className='font-mono whitespace-normal break-words text-center'>{field[0]}</td>
+          <td className='font-mono whitespace-normal break-words text-center'>{JSON.stringify(field[1], null, 2)}</td>
+        </tr>
+      )
     } else if (typeof field[1] == 'object') {
+      // console.log('field[1]', field[1])
+      // console.log('typeof field[1]', typeof field[1])
       if (field[1].id != undefined) {
         return (
           <tr>
