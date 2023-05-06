@@ -6,7 +6,6 @@ import { shortenAddress } from '../utils/address-shortener';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
-// const BACKEND_URL = 'https://api.movestudio.dev/';
 
 function PackageFunction(
   props: {

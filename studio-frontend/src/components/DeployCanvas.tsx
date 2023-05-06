@@ -9,11 +9,7 @@ import { useWallet } from '@suiet/wallet-kit';
 // import ScaleLoader from "react-spinners/ScaleLoader";
 // import { SPINNER_COLORS } from '../utils/theme';
 
-
-// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
-const BACKEND_URL = 'https://api.movestudio.dev/';
-
-
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
 function DeployCanvas (
   props: {
@@ -29,6 +25,7 @@ function DeployCanvas (
     rearrangeDeployedObjects: (draggedId: string, draggedOverId: string) => void
   }
 ) {
+
 
   const [deployedObjects, setDeployedObjects] = useState<(JSX.Element | undefined)[]>()
   const [draggedId, setDraggedId] = useState<string | undefined>(undefined)
@@ -73,18 +70,15 @@ function DeployCanvas (
       let res;
 
       // HOTFIX: retry until object is founded
-      while(true) {
-        try {
-          res = await axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl});
-          if (res == undefined || res.data.error != undefined) {
-            console.log('not removing')
-            // props.removeDeployedObject(id)
-            continue;
-          }
-          break;
-        } catch (err) {
-          console.log(err)
+      try {
+        res = await axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl});
+        if (res == undefined || res.data.error != undefined) {
+          // console.log('not removing')
+          // props.removeDeployedObject(id)
         }
+        // break;
+      } catch (err) {
+        console.log(err)
       }
 
       // const res = await axios.post(`${BACKEND_URL}object-details`, {objectId: objectId, rpc: wallet.chain?.rpcUrl});
