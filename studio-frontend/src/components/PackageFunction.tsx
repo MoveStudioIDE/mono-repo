@@ -276,22 +276,19 @@ function PackageFunction(
 
     console.log('move call txn', moveCallTxn);
 
-    while (moveCallTxn?.confirmedLocalExecution == false) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (moveCallTxn?.digest == undefined) {
-        return;
-      }
-      moveCallTxn = await axios.post(`${BACKEND_URL}transaction-details`, {digest: moveCallTxn.digest, rpc: wallet.chain?.rpcUrl});
-      // moveCallTxn = await getTransactionBlock({
-      //   digest: moveCallTxn.digest,
-      // });
-      console.log('new moveCallTxn', moveCallTxn);
+    
+    
+    moveCallTxn = await axios.post(`${BACKEND_URL}transaction-details`, {digest: moveCallTxn.digest, rpc: wallet.chain?.rpcUrl});
+    console.log('new moveCallTxn', moveCallTxn);
+
+    if (moveCallTxn.data.error != undefined) {
+      props.setFailTxn(moveCallTxn.data.error);
     }
 
-    if (moveCallTxn.data.effects?.status?.status == 'success' || (moveCallTxn.effects as any).effects.status.status == 'success') {
-      props.setSuccessTxn(moveCallTxn.digest);
+    if (moveCallTxn.data.effects?.status?.status == 'success' ) {
+      props.setSuccessTxn(moveCallTxn.data.digest);
     } else {
-      props.setFailTxn(moveCallTxn.digest);
+      props.setFailTxn(moveCallTxn.data.digest);
     }
 
     props.refreshHandler();

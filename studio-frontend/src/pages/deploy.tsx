@@ -538,28 +538,22 @@ function DeployPage() {
 
       setCurrentProject(null)
 
-      callPublish(res).then(async (res) => {
+      callPublish(res).then(async (res: any) => {
         console.log('publis res', res);
 
-        while (res?.confirmedLocalExecution == false) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (res?.digest == undefined) {
-            return;
-          }
-          res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: res.digest, rpc: wallet.chain?.rpcUrl});
-          // res = await getTransactionBlock({
-          //   digest: res.digest,
-          // });
-          console.log('new res', res);
-        }
+        res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: res?.digest, rpc: wallet.chain?.rpcUrl});
+        // res = await getTransactionBlock({
+        //   digest: res.digest,
+        // });
+        console.log('new res', res);
 
-        if (res == undefined) {
+        if (res == undefined || res.data.error != undefined) {
           return;
         }
 
-        const publishTxnDigest = res.digest;
+        const publishTxnDigest = res.data.digest;
 
-        const publishTxnCreated = (res as any).data.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
+        const publishTxnCreated = res.data.effects?.created || (res.effects as any).effects.created as OwnedObjectRef[] || [];
 
         console.log('res', res)
         console.log('publishTxnCreated', publishTxnCreated);
