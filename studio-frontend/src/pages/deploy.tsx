@@ -615,7 +615,7 @@ function DeployPage() {
     //   setStepIndex(stepIndex + 1);
     // }
 
-    const manualPackageName = prompt('Enter name of existing package. (Leave blank if object)')
+    const manualPackageName = objectId == '0x2' ? 'Sui' : prompt('Enter name of existing package. (Leave blank if object)')
     const existingObject = {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: objectId};
     setDeployedObjects([...deployedObjects, existingObject]);
   }

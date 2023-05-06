@@ -118,7 +118,7 @@ function DeploySidebar(
     }
   }
 
-  const handleObjectAdd = (event: any) => {
+  const handleObjectAdd = () => {
     const objectId = (document.getElementById('addObjectInput') as HTMLInputElement).value;
 
     if (objectId == '' || objectId == undefined) {
@@ -140,6 +140,14 @@ function DeploySidebar(
     // clear input field
     (document.getElementById('addObjectInput') as HTMLInputElement).value = '';
   }
+
+  const handleSuiPackageAdd = () => {
+    const addObjectInput = (document.getElementById('addObjectInput') as HTMLInputElement);
+    addObjectInput.value = "0x2";
+
+    handleObjectAdd();
+  }
+
 
   const handlePackagePublish = (event: any) => {
     props.publishPackage();
@@ -271,6 +279,14 @@ function DeploySidebar(
                   </button>
                 </div>
               </div>
+            </div>
+            <div style={{marginTop:"0px", marginBottom:"5px"}}>
+              <button
+                onClick={handleSuiPackageAdd}
+                className="btn btn-xs btn-warning btn-outline badge"
+              >
+                Add Sui Package
+              </button>
             </div>
             <div className="card-actions justify-end">
               <button
