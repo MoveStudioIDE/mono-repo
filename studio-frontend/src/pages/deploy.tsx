@@ -620,6 +620,29 @@ function DeployPage() {
     setDeployedObjects([...deployedObjects, existingObject]);
   }
 
+  const addFromTransactions = async (objectId: string) => {
+    const res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: objectId, rpc: wallet.chain?.rpcUrl});
+
+    const txnCreated = (res as any).data.effects?.created || [];
+
+    const manualPackageName = prompt('Enter name of new package. (Leave blank if object)')
+    const packageInfos = txnCreated?.map((object: any) => {
+      return {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: object.reference.objectId};
+    });
+
+    if (!packageInfos) {
+      return;
+    }
+
+    console.log('packageInfos', packageInfos)
+
+    if (txnCreated) {
+      const newDeployedObjects = deployedObjects.concat(packageInfos);
+      console.log('newDeployedObjects', newDeployedObjects)
+      setDeployedObjects(newDeployedObjects);
+    }
+  }
+
   // Remove the specific object from the deployedObjects array
   const removeDeployedObject = async (objectId: string) => {
     await setIsOverlayActive(true);
@@ -677,6 +700,7 @@ function DeployPage() {
             changeProject={handleProjectChange}
             publishPackage={handlePackagePublish}
             addExistingObject={addExistingObject}
+            addFromTransactions={addFromTransactions}
             compileError={compileError}
           />
         }
