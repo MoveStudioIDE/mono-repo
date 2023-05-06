@@ -1,5 +1,6 @@
 import { JsonRpcProvider, devnetConnection, Connection } from "@mysten/sui.js";
 
+const MAX_RETRIES = 60;
 
 export async function getObjectDetails(objectId: string, rpc?: string) {
   console.log('getObjectDetails', objectId)
@@ -17,7 +18,7 @@ export async function getObjectDetails(objectId: string, rpc?: string) {
   let count = 0;
   while(true) {
     count++;
-    if (count > 10) {
+    if (count > MAX_RETRIES) {
       return {error: 'timeout'};
     }
     // wait 1 second
@@ -56,7 +57,7 @@ export async function getPackageDetails(packageId: string, rpc?: string) {
   let count = 0;
   while(true) {
     count++;
-    if (count > 10) {
+    if (count > MAX_RETRIES) {
       return {error: 'timeout'};
     }
     // wait 1 second
@@ -90,7 +91,7 @@ export async function getTransactionDetails(transactionDigest: string, rpc?: str
   let count = 0;
   while(true) {
     count++;
-    if (count > 10) {
+    if (count > MAX_RETRIES) {
       return {error: 'timeout'};
     }
     // wait 1 second
