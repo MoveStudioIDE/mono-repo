@@ -616,7 +616,7 @@ function DeployPage() {
 
 
     // vercel analytics
-    va.track('clickAddExistingObject', {objectId: objectId});
+    va.track('clickAddExistingObject', {objectId: 'object:' + objectId});
 
 
     const manualPackageName = objectId == '0x2' ? 'Sui' : prompt('Enter name of existing package. (Leave blank if object)')
