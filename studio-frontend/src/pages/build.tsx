@@ -228,6 +228,9 @@ function BuildPage() {
       return;
     }
 
+    // vercel analytics
+    va.track('clickTest', {projectName: currentProject.package});
+
     console.log('testing with backend: ', BACKEND_URL);
 
     axios.post(`${BACKEND_URL}test`, currentProject).then((res) => {
