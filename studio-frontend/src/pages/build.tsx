@@ -717,6 +717,9 @@ function BuildPage() {
       return;
     }
 
+    // vercel analytics
+    va.track('resetCache');
+
     handleProjectChange('**default');
 
     indexedDb = new IndexedDb('test');
@@ -729,6 +732,9 @@ function BuildPage() {
   }
 
   const resetDemo = async () => {
+    // vercel analytics
+    va.track('resetDemo');
+
     handleProjectChange('**default');
 
     indexedDb = new IndexedDb('test');
