@@ -139,7 +139,7 @@ function BuildPage() {
     }
 
     // vercel analytics
-    va.track('compileProject', {projectName: currentProject.package});
+    va.track('clickCompile', {projectName: currentProject.package});
 
     console.log('compiling with backend: ', BACKEND_URL);
 
