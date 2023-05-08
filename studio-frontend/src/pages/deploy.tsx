@@ -18,6 +18,8 @@ import { useSuiProvider, useWallet } from "@suiet/wallet-kit";
 import { network } from "@/utils/network";
 import { OwnedObjectRef, TransactionBlock, fromB64, normalizeSuiObjectId } from "@mysten/sui.js";
 import { ScaleLoader } from "react-spinners";
+import va from '@vercel/analytics';
+
 
 
 
@@ -410,6 +412,10 @@ function DeployPage() {
       return;
     }
 
+    // vercel analytics
+    va.track('clickPublish', {projectName: currentProject.package});
+
+
     // get compiled modules
     const compileCode = async () => {
       if (!currentProject) {
@@ -608,12 +614,21 @@ function DeployPage() {
     //   setStepIndex(stepIndex + 1);
     // }
 
+
+    // vercel analytics
+    va.track('clickAddExistingObject', {objectId: objectId});
+
+
     const manualPackageName = objectId == '0x2' ? 'Sui' : prompt('Enter name of existing package. (Leave blank if object)')
     const existingObject = {id: Math.random().toString(36).slice(2), name: manualPackageName || 'manual', address: objectId};
     setDeployedObjects([...deployedObjects, existingObject]);
   }
 
   const addFromTransactions = async (objectId: string) => {
+
+    // vercel analytics
+    va.track('clickAddFromTransactions', {digest: objectId});
+    
     const res = await axios.post(`${BACKEND_URL}transaction-details`, {digest: objectId, rpc: wallet.chain?.rpcUrl});
 
     const txnCreated = (res as any).data.effects?.created || [];
