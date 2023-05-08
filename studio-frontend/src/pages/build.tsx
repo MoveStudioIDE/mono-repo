@@ -7,6 +7,7 @@ import axios from "axios";
 import { IndexedDb } from "../db/ProjectsDB";
 import BuildCanvas from "../components/BuildCanvas";
 import ScaleLoader from "react-spinners/ScaleLoader";
+import va from '@vercel/analytics';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
@@ -137,6 +138,9 @@ function BuildPage() {
       return;
     }
 
+    // vercel analytics
+    va.track('clickCompile', {projectName: currentProject.package});
+
     console.log('compiling with backend: ', BACKEND_URL);
 
     axios.post(`${BACKEND_URL}compile`, currentProject).then((res) => {
@@ -223,6 +227,9 @@ function BuildPage() {
     if (!currentProject) {
       return;
     }
+
+    // vercel analytics
+    va.track('clickTest', {projectName: currentProject.package});
 
     console.log('testing with backend: ', BACKEND_URL);
 
@@ -710,6 +717,9 @@ function BuildPage() {
       return;
     }
 
+    // vercel analytics
+    va.track('resetCache');
+
     handleProjectChange('**default');
 
     indexedDb = new IndexedDb('test');
@@ -722,6 +732,9 @@ function BuildPage() {
   }
 
   const resetDemo = async () => {
+    // vercel analytics
+    va.track('resetDemo');
+
     handleProjectChange('**default');
 
     indexedDb = new IndexedDb('test');
