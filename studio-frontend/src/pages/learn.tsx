@@ -7,6 +7,8 @@ import mediumNftImage from "../../public/medium-nft.png"
 import mediumTimeImage from "../../public/medium-time.png"
 import mediumMovestudioImage from "../../public/medium-movestudio.png"
 
+import va from '@vercel/analytics';
+
 const posts = [
   {
     title: "Move Studio — The Remix IDE 2.0 for the Sui blockchain", 
@@ -57,17 +59,8 @@ export default function Learn() {
           </h2>
           <p>{post.description}</p>
           <div className="card-actions justify-end">
-            <button className="btn btn-secondary btn-sm"><a target="_blank" href={post.url}>Visit</a></button>
+            <button className="btn btn-secondary btn-sm" onClick={() => va.track("clickVisit", {title: post.title})}><a target="_blank" href={post.url}>Visit</a></button>
           </div>
-          {/* <div className="card-actions justify-end">
-            {
-              post.badges?.map((badge) => {
-                return (
-                  <div className="badge badge-outline">{badge}</div>
-                )
-              })
-            }
-          </div> */}
         </div>
       </div>
     )
