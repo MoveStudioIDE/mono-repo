@@ -59,7 +59,7 @@ export default function Learn() {
           </h2>
           <p>{post.description}</p>
           <div className="card-actions justify-end">
-            <button className="btn btn-secondary btn-sm" onClick={() => va.track("clickVisit", {title: post.title})}><a target="_blank" href={post.url}>Visit</a></button>
+            <a target="_blank" href={post.url}><button className="btn btn-secondary btn-sm" onClick={() => va.track("clickVisit", {title: post.title})}>Visit</button></a>
           </div>
         </div>
       </div>
