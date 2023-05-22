@@ -42,16 +42,12 @@ function DeployPage() {
   const [compileError, setCompileError] = useState<string>('');
   const [deployedModules, setDeployedModules] = useState<string[]>([]);
   const [deployedObjects, setDeployedObjects] = useState<DeployedPackageInfo[]>([]);
-  // const { connected, getAccounts, signAndExecuteTransaction } = useWallet();
   const wallet = useWallet()
 
   const [toasts, setToasts] = useState<JSX.Element | undefined>();
-  // const [transaction, setTransaction] = useState<(JSX.Element | undefined)>();
-
   const [isOverlayActive, setIsOverlayActive] = useState<boolean>(false);
-  const [runTutorial, setRunTutorial] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
 
+  const [useSuiVision, setUseSuiVision] = useState<boolean>(false);
   
 
   // Alert the user if they leave the page when they have deployed objects in the session
@@ -68,21 +64,12 @@ function DeployPage() {
   }, [toasts]);
 
   useEffect(() => {
-    if (localStorage.getItem('preferredSuiWallet') === 'Suiet') {
-      alert('Suiet wallet is curently not supported in this version of Move Studio IDE, please use Sui (recommended) or Martian wallet');
-      return;
+    // check useSuiVision in local storage
+    const suiVision = localStorage.getItem('useSuiVision');
+    if (suiVision === 'true') {
+      setUseSuiVision(true);
     }
-
-    if(wallet.connected && runTutorial && stepIndex === 1) {
-      setStepIndex(2);
-    }
-  }, [wallet.connected])
-
-  useEffect(() => {
-    if (runTutorial && stepIndex === 2 && currentProject?.package === 'demoPackage') {
-      setStepIndex(3);
-    }
-}, [currentProject])
+  }, [])
 
   // Initialize indexedDb
   let indexedDb: IndexedDb;
@@ -123,56 +110,7 @@ function DeployPage() {
     // setStepIndex(0);
   }
 
-  const pauseTutorial = () => {
-    if (runTutorial) {
-      // setRunTutorial(false);
-      setStepIndex(2);
-    }
-  }
 
-  const tutorialCallback = (data: any) => {
-    const { action, index, type, status } = data;
-    console.log('tutorialCallback', data);
-    if (action === 'close') {
-      setRunTutorial(false);
-      setStepIndex(0); 
-      return;
-    }
-    if (action === 'next' && type === 'step:after') {
-      if (index === 1 && !wallet.connected) {
-        alert('Please connect your Sui wallet to continue with the tutorial. (Note: the Suiet wallet is currently not supported)')
-        return;
-      }
-      if (index === 2 && currentProject?.package !== 'demoPackage') {
-        alert('Select the demoPackage project to continue with the tutorial.')
-        return;
-      }
-      // if (index === 3 && deployedObjects.length === 0) {
-      //   alert('Deploy the demoPackage project to continue with the tutorial.')
-      //   return;
-      // }
-      setStepIndex(index + 1);
-      return
-    }
-    if (action === 'prev' && type === 'step:after') {
-      setStepIndex(index - 1);
-      return;
-    }
-    if (status === 'finished') {
-      setRunTutorial(false);
-      setStepIndex(0);
-      return
-    }
-    if (status === 'skipped' && index === 1) {
-      setRunTutorial(false);
-      return
-    }
-    if (status === 'skipped' && index !== 1) {
-      setRunTutorial(false);
-      setStepIndex(0);
-      return
-    }
-  }
 
   const resetCache = () => {
     const confirmReset = confirm("This will clear all of your projects and reset the demo project. Press OK to continue.")
@@ -229,7 +167,7 @@ function DeployPage() {
           <div>
             <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span>Successful transaction</span>
-            <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+            <a href={ useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/txblock/${digest}` : `https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
               <button>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
               </button>
@@ -293,7 +231,7 @@ function DeployPage() {
             <div>
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span>Transaction failed</span>
-              <a href={`https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+              <a href={ useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/txblock/${digest}` : `https://explorer.sui.io/transaction/${digest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
                 <button >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
                 </button>
@@ -377,10 +315,6 @@ function DeployPage() {
     if (localStorage.getItem('preferredSuiWallet') === 'Suiet') {
       alert('Suiet wallet is curently not supported in this version of Move Studio IDE, please use Sui (recommended) or Martian wallet');
       return;
-    }
-
-    if (runTutorial && stepIndex === 3) {
-      setStepIndex(4);
     }
 
     setIsOverlayActive(true);
@@ -588,7 +522,7 @@ function DeployPage() {
               <div>
                 <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <span>Successful publication</span>
-                <a href={`https://explorer.sui.io/transaction/${publishTxnDigest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+                <a href={ useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/txblock/${publishTxnDigest}` : `https://explorer.sui.io/transaction/${publishTxnDigest}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
                   <button >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
                   </button>
@@ -710,6 +644,8 @@ function DeployPage() {
             addExistingObject={addExistingObject}
             addFromTransactions={addFromTransactions}
             compileError={compileError}
+            useSuiVision={useSuiVision}
+            setUseSuiVision={setUseSuiVision}
           />
         }
         canvas={
@@ -723,6 +659,7 @@ function DeployPage() {
           removeDeployedObject={removeDeployedObject}
           rearrangeDeployedObjects={rearrangeDeployedObjects}
           setIsOverlayActive={setIsOverlayActive}
+          useSuiVision={useSuiVision}
         />}
       />
     </div>

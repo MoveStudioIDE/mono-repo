@@ -21,6 +21,8 @@ function DeploySidebar(
     addExistingObject: (objectId: string) => void,
     addFromTransactions: (transactionId: string) => void,
     compileError: string,
+    useSuiVision: boolean,
+    setUseSuiVision: (useSuiVision: boolean) => void,
   }
 ) {
 
@@ -186,6 +188,13 @@ function DeploySidebar(
     setIgnoreUpgradeCap(event.target.checked);
   }
 
+  const handleSetUseSuiVision = () => {
+    // set this config in local storage
+    localStorage.setItem('useSuiVision', (!props.useSuiVision).toString());
+
+    props.setUseSuiVision(!props.useSuiVision);
+  }
+
   // console.log('walleticon', walletIcon)
 
   return (
@@ -193,7 +202,7 @@ function DeploySidebar(
       {wallet.connected && 
         <div className="card w-full shadow-xl card-compact">
           <div className="card-actions justify-end z-20">
-            <a className="link link-hover " href={`https://explorer.sui.io/address/${wallet.address}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+            <a className="link link-hover " href={ props.useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/account/${wallet.address}` : `https://explorer.sui.io/address/${wallet.address}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
               <button className="btn btn-square btn-ghost btn-xs mt-1 mr-1" >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>            
               </button>
@@ -309,7 +318,7 @@ function DeploySidebar(
                 </div>
               </div>
             </div>
-            <div style={{marginTop:"0px", marginBottom:"5px"}}>
+            <div>
               <button
                 onClick={handleSuiPackageAdd}
                 className="btn btn-xs btn-warning btn-outline badge"
@@ -317,7 +326,7 @@ function DeploySidebar(
                 Add Sui Package
               </button>
             </div>
-            <div style={{marginTop:"0px", marginBottom:"5px"}} className="tutorial-deploy-add-object">
+            <div style={{marginTop:"0px", marginBottom:"5px"}}>
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-bold">Add from transaction digest</span>
@@ -341,16 +350,24 @@ function DeploySidebar(
               </div>
             </div>
             <div style={{marginTop:"0px", marginBottom:"5px"}}>
-              <span className="font-bold">Coming soon: </span>
+              <span className="font-bold">Additional configs: </span>
+              <SettingToggle
+                label="Use Sui Vision explorer"
+                checked={props.useSuiVision}
+                onChange={handleSetUseSuiVision}
+                tooltip="Use Sui Vision explorer to view transactions and objects instead of the default explorer"
+              />
               <SettingToggle
                 label="Ignore upgradeCap"
                 checked={ignoreUpgradeCap}
                 onChange={handleSetIgnoreUpgradeCap}
+                disabled={true}
               />
               <SettingToggle
                 label="Automatically add all created objects"
                 checked={ignoreUpgradeCap}
                 onChange={handleSetIgnoreUpgradeCap}
+                disabled={true}
               />
             </div>
             <div className="card-actions justify-end">
