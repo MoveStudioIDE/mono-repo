@@ -22,7 +22,8 @@ function DeployCanvas (
     setSuccessTxn: (digest: string) => void,
     setFailTxn: (digest: string) => void,
     removeDeployedObject: (id: string) => void,
-    rearrangeDeployedObjects: (draggedId: string, draggedOverId: string) => void
+    rearrangeDeployedObjects: (draggedId: string, draggedOverId: string) => void,
+    useSuiVision: boolean
   }
 ) {
 
@@ -113,6 +114,7 @@ function DeployCanvas (
             dragEnterHandler={handleDragEnter}
             dragLeaveHandler={handleDragLeave}
             dropHandler={handleDrop}
+            useSuiVision={props.useSuiVision}
           />;
 
         }); 
@@ -146,6 +148,7 @@ function DeployCanvas (
           refreshHandler={updateDeployedObjects}
           id={id}
           removeDeployedObject={props.removeDeployedObject}
+          useSuiVision={props.useSuiVision}
         />;
       }
     });
@@ -207,6 +210,7 @@ function DeployCanvas (
             refreshHandler={updateDeployedObjects}
             id={object?.props.id}
             removeDeployedObject={props.removeDeployedObject}
+            useSuiVision={props.useSuiVision}
           />;
         }
       });
