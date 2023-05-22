@@ -355,6 +355,7 @@ function DeploySidebar(
                 label="Use Sui Vision explorer"
                 checked={props.useSuiVision}
                 onChange={handleSetUseSuiVision}
+                tooltip="Use Sui Vision explorer to view transactions and objects instead of the default explorer"
               />
               <SettingToggle
                 label="Ignore upgradeCap"
