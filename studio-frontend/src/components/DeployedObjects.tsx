@@ -10,7 +10,7 @@ import { Position } from 'monaco-editor';
 import { Handle, NodeResizer } from 'reactflow';
 
 export function PackageNode({ data }: any) {
-  const onChange = useCallback((evt) => {
+  const onChange = useCallback((evt: any) => {
     console.log(evt.target.value);
   }, []);
 
@@ -38,7 +38,7 @@ export function PackageNode({ data }: any) {
 }
 
 export function ObjectNode({ data }: any) {
-  const onChange = useCallback((evt) => {
+  const onChange = useCallback((evt: any) => {
     console.log(evt.target.value);
   }, []);
 
@@ -47,12 +47,14 @@ export function ObjectNode({ data }: any) {
       <DeployedObject
         id={data.id}
         address={data.address}
-        modules={data.modules}
-        packageName={data.packageName}
+        fields={data.fields}
+        packageAddress={data.packageAddress}
+        moduleName={data.moduleName}
+        objectName={data.objectName}
+        shared={data.shared}
+        typeParameter={data.typeParameter}
+        updateHandler={data.updateHandler}
         refreshHandler={data.refreshHandler}
-        setPendingTxn={data.setPendingTxn}
-        setSuccessTxn={data.setSuccessTxn}
-        setFailTxn={data.setFailTxn}
         removeDeployedObject={data.removeDeployedObject}
         dragStartHandler={data.dragStartHandler}
         dragEnterHandler={data.dragEnterHandler}
