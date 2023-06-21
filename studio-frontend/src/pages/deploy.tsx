@@ -247,6 +247,25 @@ function DeployPage() {
       )
     }
   }
+
+  const setLoading = (loading: boolean) => {
+    if (loading) {
+      setToasts(
+        <div className="alert alert-loading">
+          <div>
+            <ScaleLoader
+              color={"#003e4d"}
+              height={20}
+              // width={15}
+            />
+            <span>Loading objects</span>
+          </div>
+        </div>
+      )
+    } else {
+      setToasts(undefined);
+    }
+  }
           
   //---Handlers---//
 
@@ -656,6 +675,7 @@ function DeployPage() {
           setPendingTxn={setPendingTxn}
           setSuccessTxn={setSuccessTxn}
           setFailTxn={setFailTxn}
+          // setLoading={setLoading}
           removeDeployedObject={removeDeployedObject}
           rearrangeDeployedObjects={rearrangeDeployedObjects}
           setIsOverlayActive={setIsOverlayActive}

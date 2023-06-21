@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import PackageFunction from './PackageFunction';
 import copyIcon from "../icons/copy-24.png";
 import copyIcon2 from "../icons/copy2-24.png";
@@ -6,6 +6,63 @@ import { shortenAddress, shortenWord } from '../utils/address-shortener';
 import PackageStruct from './PackageStruct';
 import { useWallet } from '@suiet/wallet-kit';
 import { network } from '../utils/network';
+import { Position } from 'monaco-editor';
+import { Handle, NodeResizer } from 'reactflow';
+
+export function PackageNode({ data }: any) {
+  const onChange = useCallback((evt) => {
+    console.log(evt.target.value);
+  }, []);
+
+  return (
+    <>
+      {/* <NodeResizer color="#ff0071"  minWidth={100} minHeight={30} /> */}
+      <DeployedPackage
+        id={data.id}
+        address={data.address}
+        modules={data.modules}
+        packageName={data.packageName}
+        refreshHandler={data.refreshHandler}
+        setPendingTxn={data.setPendingTxn}
+        setSuccessTxn={data.setSuccessTxn}
+        setFailTxn={data.setFailTxn}
+        removeDeployedObject={data.removeDeployedObject}
+        dragStartHandler={data.dragStartHandler}
+        dragEnterHandler={data.dragEnterHandler}
+        dragLeaveHandler={data.dragLeaveHandler}
+        dropHandler={data.dropHandler}
+        useSuiVision={data.useSuiVision}
+      />
+    </>
+  );
+}
+
+export function ObjectNode({ data }: any) {
+  const onChange = useCallback((evt) => {
+    console.log(evt.target.value);
+  }, []);
+
+  return (
+    <>
+      <DeployedObject
+        id={data.id}
+        address={data.address}
+        modules={data.modules}
+        packageName={data.packageName}
+        refreshHandler={data.refreshHandler}
+        setPendingTxn={data.setPendingTxn}
+        setSuccessTxn={data.setSuccessTxn}
+        setFailTxn={data.setFailTxn}
+        removeDeployedObject={data.removeDeployedObject}
+        dragStartHandler={data.dragStartHandler}
+        dragEnterHandler={data.dragEnterHandler}
+        dragLeaveHandler={data.dragLeaveHandler}
+        dropHandler={data.dropHandler}
+        useSuiVision={data.useSuiVision}
+      />
+    </>
+  );
+}
 
 export function DeployedPackage (
   props: {

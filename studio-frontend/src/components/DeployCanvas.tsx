@@ -1,15 +1,49 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DeployedPackageInfo } from '../types/project-types';
 // import './DeployCanvas.css'
-import {DeployedPackage, DeployedObject} from './DeployedObjects'
+import {DeployedPackage, DeployedObject, ObjectNode, PackageNode} from './DeployedObjects'
 import { ScaleLoader } from 'react-spinners';
 import LoadingOverlay from 'react-loading-overlay-ts';
 import { useWallet } from '@suiet/wallet-kit';
-// import ScaleLoader from "react-spinners/ScaleLoader";
-// import { SPINNER_COLORS } from '../utils/theme';
+
+import ReactFlow, { Background, Controls, MiniMap, applyEdgeChanges, applyNodeChanges } from 'reactflow';
+import 'reactflow/dist/style.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
+
+// const initialNodes = [
+//   {
+//     id: '1',
+//     data: { label: 'Hello' },
+//     position: { x: 0, y: 0 },
+//     type: 'input',
+//   },
+//   {
+//     id: '2',
+//     data: {
+//       id: '2',
+//       address: '0x123',
+//       modules: {},
+//       packageName: 'test',
+//       refreshHandler: () => {},
+//       setPendingTxn: () => {},
+//       setSuccessTxn: () => {},
+//       setFailTxn: () => {},
+//       removeDeployedObject: () => {},
+//       dragStartHandler: () => {},
+//       dragEnterHandler: () => {},
+//       dragLeaveHandler: () => {},
+//       dropHandler: () => {},
+//       useSuiVision: false
+//     },
+//     position: { x: 100, y: 100 },
+//     type: 'package'
+//   },
+// ];
+
+// const initialEdges = [{ id: '1-2', source: '1', target: '2', label: 'to the', type: 'step' }];
+
 
 function DeployCanvas (
   props: {
@@ -28,9 +62,24 @@ function DeployCanvas (
 ) {
 
 
-  const [deployedObjects, setDeployedObjects] = useState<(JSX.Element | undefined)[]>()
+  // const [deployedObjects, setDeployedObjects] = useState<(JSX.Element | undefined)[]>()
   const [draggedId, setDraggedId] = useState<string | undefined>(undefined)
   const [draggedOverId, setDraggedOverId] = useState<string | undefined>(undefined)
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const nodeTypes = useMemo(() => ({ package: PackageNode, Object: ObjectNode }), []);
+  const [nodes, setNodes] = useState<[]>([]);
+  // const [edges, setEdges] = useState(initialEdges);
+
+  const onNodesChange = useCallback(
+    (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds) as any),
+    []
+  );
+  // const onEdgesChange = useCallback(
+  //   (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds) as any),
+  //   []
+  // );
 
   const wallet = useWallet();
   // const {
@@ -46,10 +95,12 @@ function DeployCanvas (
 
   useEffect(() => {
    props.setIsOverlayActive(false); 
-  }, [deployedObjects])
+   setLoading(false);
+  }, [nodes])
 
   const updateDeployedObjects = async () => {
     props.setIsOverlayActive(true);
+    setLoading(true);
     const objects = props.deployedObjects.map(async (deployedPackageInfo) => {
 
       const objectId = deployedPackageInfo.address;
@@ -100,22 +151,44 @@ function DeployCanvas (
 
           const packageDetails = res.data;
 
-          return <DeployedPackage
-            id={id}
-            address={objectId}
-            modules={packageDetails}
-            packageName={deployedPackageInfo.name}
-            refreshHandler={updateDeployedObjects}
-            setPendingTxn={props.setPendingTxn}
-            setSuccessTxn={props.setSuccessTxn}
-            setFailTxn={props.setFailTxn}
-            removeDeployedObject={props.removeDeployedObject}
-            dragStartHandler={handleDragStart}
-            dragEnterHandler={handleDragEnter}
-            dragLeaveHandler={handleDragLeave}
-            dropHandler={handleDrop}
-            useSuiVision={props.useSuiVision}
-          />;
+          // return <DeployedPackage
+          //   id={id}
+          //   address={objectId}
+          //   modules={packageDetails}
+          //   packageName={deployedPackageInfo.name}
+          //   refreshHandler={updateDeployedObjects}
+          //   setPendingTxn={props.setPendingTxn}
+          //   setSuccessTxn={props.setSuccessTxn}
+          //   setFailTxn={props.setFailTxn}
+          //   removeDeployedObject={props.removeDeployedObject}
+          //   dragStartHandler={handleDragStart}
+          //   dragEnterHandler={handleDragEnter}
+          //   dragLeaveHandler={handleDragLeave}
+          //   dropHandler={handleDrop}
+          //   useSuiVision={props.useSuiVision}
+          // />;
+
+          return {
+            id: id,
+            data: {
+              id: id,
+              address: objectId,
+              modules: packageDetails,
+              packageName: deployedPackageInfo.name,
+              refreshHandler: updateDeployedObjects,
+              setPendingTxn: props.setPendingTxn,
+              setSuccessTxn: props.setSuccessTxn,
+              setFailTxn: props.setFailTxn,
+              removeDeployedObject: props.removeDeployedObject,
+              // dragStartHandler: handleDragStart,
+              // dragEnterHandler: handleDragEnter,
+              // dragLeaveHandler: handleDragLeave,
+              // dropHandler: handleDrop,
+              useSuiVision: props.useSuiVision
+            },
+            position: { x: 100, y: 100 },
+            type: 'package'
+          }
 
         }); 
 
@@ -132,175 +205,248 @@ function DeployCanvas (
           structType = undefined
         }
         
-        return <DeployedObject
-          address={objectId}
-          fields={objectData.fields}
-          packageAddress={splitFullName[0]}
-          moduleName={splitFullName[1]}
-          objectName={splitFullName[2]}
-          typeParameter={structType}
-          shared={false}//shared}
-          updateHandler={updateObjectByAddress}
-          dragStartHandler={handleDragStart}
-          dragEnterHandler={handleDragEnter}
-          dragLeaveHandler={handleDragLeave}
-          dropHandler={handleDrop}
-          refreshHandler={updateDeployedObjects}
-          id={id}
-          removeDeployedObject={props.removeDeployedObject}
-          useSuiVision={props.useSuiVision}
-        />;
+        // return <DeployedObject
+        //   address={objectId}
+        //   fields={objectData.fields}
+        //   packageAddress={splitFullName[0]}
+        //   moduleName={splitFullName[1]}
+        //   objectName={splitFullName[2]}
+        //   typeParameter={structType}
+        //   shared={false}//shared}
+        //   updateHandler={updateObjectByAddress}
+        //   dragStartHandler={handleDragStart}
+        //   dragEnterHandler={handleDragEnter}
+        //   dragLeaveHandler={handleDragLeave}
+        //   dropHandler={handleDrop}
+        //   refreshHandler={updateDeployedObjects}
+        //   id={id}
+        //   removeDeployedObject={props.removeDeployedObject}
+        //   useSuiVision={props.useSuiVision}
+        // />;
+
+        return {
+          id: id,
+          data: {
+            address: objectId,
+            fields: objectData.fields,
+            packageAddress: splitFullName[0],
+            moduleName: splitFullName[1],
+            objectName: splitFullName[2],
+            typeParameter: structType,
+            shared: false,//shared}
+            updateHandler: updateObjectByAddress,
+            // dragStartHandler: handleDragStart,
+            // dragEnterHandler: handleDragEnter,
+            // dragLeaveHandler: handleDragLeave,
+            // dropHandler: handleDrop,
+            refreshHandler: updateDeployedObjects,
+            id: id,
+            removeDeployedObject: props.removeDeployedObject,
+            useSuiVision: props.useSuiVision
+          },
+          position: { x: 100, y: 100 },
+          type: 'object'
+        }
       }
     });
     // });
 
     Promise.all(objects).then(async (objects) => {
-      await setDeployedObjects(objects);
+      await setNodes(objects as any);
     });
 
     // await props.setIsOverlayActive(false);
+    // props.setLoading(false);
 
   }
 
   const updateObjectByAddress = async (address: string) => {
-    console.log('refreshing', address)
-    await props.setIsOverlayActive(true);
+    // console.log('refreshing', address)
+    // await props.setIsOverlayActive(true);
 
-    if (deployedObjects == undefined) {
-      return
-    }
-    for (let object of deployedObjects) {
-      console.log(object)
-      if (object?.props.address == address) {
-        axios.post(`${BACKEND_URL}object-details`, {objectId: address}).then((res) => {
-        console.log('object details res', res);
-        if (res == undefined || res.data.status != 'Exists') {
-          return;
-        }
+    // if (nodes == undefined) {
+    //   return
+    // }
+    // for (let object of nodes) {
+    //   console.log(object)
 
-        const objectData = res.data.details.data;
-        // const shared = res.data.details.owner.hasOwnProperty('Shared')
-        if (objectData.dataType == 'package') {
-          return;
-        } else if (objectData.dataType == 'moveObject') {
-          const fullName = objectData.type;
-          let structType = fullName.split('<').pop().split('>')[0]
-          const fullNameWithoutStruct = fullName.split('<')[0]
-          const splitFullName = fullNameWithoutStruct.split('::');
-          console.log("SPLIT FULL NAME", splitFullName)
-          console.log("STRUCT TYPE", structType)
+    //   if (object.data.address == address) {
+    //     axios.post(`${BACKEND_URL}object-details`, {objectId: address}).then((res) => {
+    //     console.log('object details res', res);
+    //     if (res == undefined || res.data.status != 'Exists') {
+    //       return;
+    //     }
 
-          if (!(fullName.includes('<') && fullName.includes('>'))) {
-            structType = undefined
-          }
+    //     const objectData = res.data.details.data;
+    //     // const shared = res.data.details.owner.hasOwnProperty('Shared')
+    //     if (objectData.dataType == 'package') {
+    //       return;
+    //     } else if (objectData.dataType == 'moveObject') {
+    //       const fullName = objectData.type;
+    //       let structType = fullName.split('<').pop().split('>')[0]
+    //       const fullNameWithoutStruct = fullName.split('<')[0]
+    //       const splitFullName = fullNameWithoutStruct.split('::');
+    //       console.log("SPLIT FULL NAME", splitFullName)
+    //       console.log("STRUCT TYPE", structType)
+
+    //       if (!(fullName.includes('<') && fullName.includes('>'))) {
+    //         structType = undefined
+    //       }
           
-          object = <DeployedObject
-            address={address}
-            fields={objectData.fields}
-            packageAddress={splitFullName[0]}
-            moduleName={splitFullName[1]}
-            objectName={splitFullName[2]}
-            shared={false}//shared}
-            typeParameter={structType}
-            updateHandler={updateObjectByAddress}
-            dragStartHandler={handleDragStart}
-            dragEnterHandler={handleDragEnter}
-            dragLeaveHandler={handleDragLeave}
-            dropHandler={handleDrop}
-            refreshHandler={updateDeployedObjects}
-            id={object?.props.id}
-            removeDeployedObject={props.removeDeployedObject}
-            useSuiVision={props.useSuiVision}
-          />;
-        }
-      });
-      }
-    }
+    //       object = <DeployedObject
+    //         address={address}
+    //         fields={objectData.fields}
+    //         packageAddress={splitFullName[0]}
+    //         moduleName={splitFullName[1]}
+    //         objectName={splitFullName[2]}
+    //         shared={false}//shared}
+    //         typeParameter={structType}
+    //         updateHandler={updateObjectByAddress}
+    //         dragStartHandler={handleDragStart}
+    //         dragEnterHandler={handleDragEnter}
+    //         dragLeaveHandler={handleDragLeave}
+    //         dropHandler={handleDrop}
+    //         refreshHandler={updateDeployedObjects}
+    //         id={object?.props.id}
+    //         removeDeployedObject={props.removeDeployedObject}
+    //         useSuiVision={props.useSuiVision}
+    //       />;
+    //     }
+    //   });
+    //   }
+    // }
   }
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log('drag start', e.currentTarget.id)
+  // const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+  //   console.log('drag start', e.currentTarget.id)
     
-    setDraggedId(e.currentTarget.id)
-    e.dataTransfer.setData('draggedId', e.currentTarget.id)
+  //   setDraggedId(e.currentTarget.id)
+  //   e.dataTransfer.setData('draggedId', e.currentTarget.id)
 
-    console.log('dataTransfer', e.dataTransfer.items)
+  //   console.log('dataTransfer', e.dataTransfer.items)
 
-  }
+  // }
 
-  const handleDragStop = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log('drag stop', e.currentTarget.id)
+  // const handleDragStop = (e: React.DragEvent<HTMLDivElement>) => {
+  //   console.log('drag stop', e.currentTarget.id)
 
-    setDraggedId(undefined)
-    // e.dataTransfer.clearData()
-  }
+  //   setDraggedId(undefined)
+  //   // e.dataTransfer.clearData()
+  // }
 
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log('drag enter', e.currentTarget.id)
+  // const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+  //   console.log('drag enter', e.currentTarget.id)
 
-    e.preventDefault()
+  //   e.preventDefault()
 
-    setDraggedOverId(e.currentTarget.id)
-    e.dataTransfer.setData('draggedOverId', e.currentTarget.id)
+  //   setDraggedOverId(e.currentTarget.id)
+  //   e.dataTransfer.setData('draggedOverId', e.currentTarget.id)
 
-    console.log('dataTransfer', e.dataTransfer.items)
+  //   console.log('dataTransfer', e.dataTransfer.items)
 
-  }
+  // }
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log('drag leave', e.currentTarget.id)
+  // const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  //   console.log('drag leave', e.currentTarget.id)
 
-    setDraggedOverId(undefined)
-    // e.dataTransfer.clearData('draggedOverId')
-  }
+  //   setDraggedOverId(undefined)
+  //   // e.dataTransfer.clearData('draggedOverId')
+  // }
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log('drop', e.currentTarget.id)
-    console.log('dataTransfer', e.dataTransfer.items)
-    const draggedId = e.dataTransfer.getData('draggedId')
-    const draggedOverId = e.currentTarget.id;
-    console.log('draggedId', draggedId)
-    console.log('draggedOverId', draggedOverId)
-    if (draggedId == undefined || draggedOverId == undefined) {
-      return;
-    }
+  // const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  //   console.log('drop', e.currentTarget.id)
+  //   console.log('dataTransfer', e.dataTransfer.items)
+  //   const draggedId = e.dataTransfer.getData('draggedId')
+  //   const draggedOverId = e.currentTarget.id;
+  //   console.log('draggedId', draggedId)
+  //   console.log('draggedOverId', draggedOverId)
+  //   if (draggedId == undefined || draggedOverId == undefined) {
+  //     return;
+  //   }
 
-    props.rearrangeDeployedObjects(draggedId, draggedOverId)
-  }
+  //   props.rearrangeDeployedObjects(draggedId, draggedOverId)
+  // }
 
   return (
-      <LoadingOverlay 
-        className="flex flex-auto flex-wrap justify-center content-center items-center min-w-full min-h-full"  
-        active={props.isOverlayActive}
-        spinner={
-          <ScaleLoader
-            // color={SPINNER_COLORS[props.theme].primaryAndSecondary[Math.floor(Math.random() * SPINNER_COLORS[props.theme].primaryAndSecondary.length)]}
-            color="#003e4d"
-          />
-        }
-        text='Loading objects...'
-        fadeSpeed={100}
-        styles={{
-          overlay: (base) => ({
-            ...base,
-            background: 'hsl(var(--b3))',
-            opacity: '0.7',
-          }),
-          // wrapper: {
-          //   width: '90%',
-          //   height: '100%',
-          // }
-        }}
-      >
-        {/* <ResponsiveMasonry >
-          <Masonry > */}
-            {deployedObjects}
-          {/* </Masonry>
-        </ResponsiveMasonry> */}
-        <div className="toast toast-end">
-          {props.toasts}
+      // <LoadingOverlay 
+      //   className="flex flex-auto flex-wrap justify-center content-center items-center min-w-full min-h-full"  
+      //   active={props.isOverlayActive}
+      //   spinner={
+      //     <ScaleLoader
+      //       // color={SPINNER_COLORS[props.theme].primaryAndSecondary[Math.floor(Math.random() * SPINNER_COLORS[props.theme].primaryAndSecondary.length)]}
+      //       color="#003e4d"
+      //     />
+      //   }
+      //   text='Loading objects...'
+      //   fadeSpeed={100}
+      //   styles={{
+      //     overlay: (base) => ({
+      //       ...base,
+      //       background: 'hsl(var(--b3))',
+      //       opacity: '0.7',
+      //     }),
+      //     // wrapper: {
+      //     //   width: '90%',
+      //     //   height: '100%',
+      //     // }
+      //   }}
+      // >
+        <div style={{ height: '100%' }}>
+          
+            <ReactFlow 
+              nodes={nodes}
+              onNodesChange={onNodesChange}
+              nodeTypes={nodeTypes}
+              // edges={edges}
+              // onEdgesChange={onEdgesChange}
+            >
+              {/* <LoadingOverlay
+                active={props.isOverlayActive}
+                spinner={
+                  <ScaleLoader
+                    // color={SPINNER_COLORS[props.theme].primaryAndSecondary[Math.floor(Math.random() * SPINNER_COLORS[props.theme].primaryAndSecondary.length)]}
+                    color="#003e4d"
+                  />
+                }
+                text='Loading objects...'
+                fadeSpeed={100}
+                styles={{
+                  overlay: (base) => ({
+                    ...base,
+                    background: 'hsl(var(--b3))',
+                    opacity: '0.7',
+                  }),
+                }}
+              > */}
+                <Background />
+                <Controls />
+                {/* <MiniMap /> */}
+              {/* </LoadingOverlay> */}
+            </ReactFlow>
+            <div className="toast toast-center">
+              { 
+                loading && 
+                <div className="alert alert-loading">
+                  <div>
+                    <ScaleLoader
+                      color={"#003e4d"}
+                      height={20}
+                      // width={15}
+                    />
+                    <span  className="normal-case">Loading</span>
+                  </div>
+                </div>
+              }
+            </div>
+            <div className="toast toast-end">
+              {props.toasts}
+            </div>
         </div>
-      </LoadingOverlay>
+        
+        // <div className="toast toast-end">
+        //   {props.toasts}
+        // </div>
+      // </LoadingOverlay>
     
   )
 }
