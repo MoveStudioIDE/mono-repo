@@ -19,7 +19,7 @@ export default function SettingToggle (
         </span> 
         { 
           props.tooltip && 
-          <div className="tooltip tooltip-info tooltip-right" data-tip={props.tooltip}>
+          <div className="tooltip tooltip-info tooltip-left " data-tip={props.tooltip}>
             <input type="checkbox" className="toggle toggle-xs toggle-warning" checked={props.checked} onChange={props.onChange} disabled={props.disabled}/>
           </div>
         }
