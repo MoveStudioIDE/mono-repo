@@ -1,14 +1,15 @@
 import axios from 'axios';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DeployedPackageInfo } from '../types/project-types';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { DeployedPackageInfo, Project } from '../types/project-types';
 // import './DeployCanvas.css'
 import {DeployedPackage, DeployedObject, ObjectNode, PackageNode} from './DeployedObjects'
 import { ScaleLoader } from 'react-spinners';
 import LoadingOverlay from 'react-loading-overlay-ts';
 import { useWallet } from '@suiet/wallet-kit';
 
-import ReactFlow, { Background, Controls, MiniMap, applyEdgeChanges, applyNodeChanges } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, applyEdgeChanges, applyNodeChanges, useNodesState, useStore } from 'reactflow';
 import 'reactflow/dist/style.css';
+import DeployCanvasContextMenu from './DeployCanvasContextMenu';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 
@@ -43,10 +44,18 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:80/';
 // ];
 
 // const initialEdges = [{ id: '1-2', source: '1', target: '2', label: 'to the', type: 'step' }];
-
+let id = 0;
+const getId = () => `dndnode_${id++}`;
 
 function DeployCanvas (
   props: {
+    projectList: string[],
+    currentProject: Project | null,
+    changeProject: (project: string) => void,
+    publishPackage: () => void,
+    addExistingObject: (objectId: string) => void,
+    addFromTransactions: (transactionId: string) => void,
+    compileError: string,
     // theme: string,
     deployedObjects: DeployedPackageInfo[],
     toasts: JSX.Element | undefined,
@@ -57,7 +66,8 @@ function DeployCanvas (
     setFailTxn: (digest: string) => void,
     removeDeployedObject: (id: string) => void,
     rearrangeDeployedObjects: (draggedId: string, draggedOverId: string) => void,
-    useSuiVision: boolean
+    useSuiVision: boolean,
+    dropped: () => void
   }
 ) {
 
@@ -66,16 +76,19 @@ function DeployCanvas (
   const [draggedId, setDraggedId] = useState<string | undefined>(undefined)
   const [draggedOverId, setDraggedOverId] = useState<string | undefined>(undefined)
 
+  const reactFlowWrapper = useRef(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
   const [loading, setLoading] = useState<boolean>(false);
 
-  const nodeTypes = useMemo(() => ({ package: PackageNode, Object: ObjectNode }), []);
-  const [nodes, setNodes] = useState<[]>([]);
+  const nodeTypes = useMemo(() => ({ package: PackageNode, object: ObjectNode }), []);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   // const [edges, setEdges] = useState(initialEdges);
 
-  const onNodesChange = useCallback(
-    (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds) as any),
-    []
-  );
+  // const onNodesChange = useCallback(
+  //   (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds) as any),
+  //   []
+  // );
   // const onEdgesChange = useCallback(
   //   (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds) as any),
   //   []
@@ -97,6 +110,55 @@ function DeployCanvas (
    props.setIsOverlayActive(false); 
    setLoading(false);
   }, [nodes])
+
+  const onDragOver = useCallback((event: any) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  // useEffect(() => {
+  //   document.addEventListener('contextmenu',(event) => {
+  //     event.preventDefault();
+  //     console.log(event.type);
+  //   });
+  // }, []);
+
+  const onDrop = () => {
+    props.dropped()
+  }
+
+
+  // const onDrop = useCallback(
+  //   (event: any) => {
+  //     event.preventDefault();
+
+  //     if (reactFlowInstance === null || reactFlowWrapper.current === null) {
+  //       return;
+  //     }
+
+  //     const reactFlowBounds = (reactFlowWrapper.current as any).getBoundingClientRect();
+  //     const type = event.dataTransfer.getData('application/reactflow');
+
+  //     // check if the dropped element is valid
+  //     if (typeof type === 'undefined' || !type) {
+  //       return;
+  //     }
+
+  //     const position = (reactFlowInstance as any).project({
+  //       x: event.clientX - reactFlowBounds.left,
+  //       y: event.clientY - reactFlowBounds.top,
+  //     });
+  //     const newNode = {
+  //       id: getId(),
+  //       type,
+  //       position,
+  //       data: { label: `${type} node` },
+  //     };
+
+  //     setNodes((nds) => nds.concat(newNode));
+  //   },
+  //   [reactFlowInstance]
+  // );
 
   const updateDeployedObjects = async () => {
     props.setIsOverlayActive(true);
@@ -391,14 +453,26 @@ function DeployCanvas (
       //     // }
       //   }}
       // >
-        <div style={{ height: '100%' }}>
-          
+        <div id='deplyAndInteractMenu' style={{ height: '100%' }}>
+            <DeployCanvasContextMenu
+              targetId='deplyAndInteractMenu'
+              projectList={props.projectList}
+              changeProject={props.changeProject}
+              addExistingObject={props.addExistingObject}
+              addFromTransactions={props.addFromTransactions}
+              publishPackage={props.publishPackage}
+              currentProject={props.currentProject}
+              compileError={props.compileError}
+            />
             <ReactFlow 
               nodes={nodes}
               onNodesChange={onNodesChange}
               nodeTypes={nodeTypes}
               // edges={edges}
               // onEdgesChange={onEdgesChange}
+              onInit={setReactFlowInstance as any}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
             >
               {/* <LoadingOverlay
                 active={props.isOverlayActive}
@@ -419,6 +493,7 @@ function DeployCanvas (
                 }}
               > */}
                 <Background />
+                
                 <Controls />
                 {/* <MiniMap /> */}
               {/* </LoadingOverlay> */}

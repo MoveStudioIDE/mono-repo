@@ -40,8 +40,12 @@ function DeployPage() {
   const [projectList, setProjectList] = useState<string[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [compileError, setCompileError] = useState<string>('');
-  const [deployedModules, setDeployedModules] = useState<string[]>([]);
+
   const [deployedObjects, setDeployedObjects] = useState<DeployedPackageInfo[]>([]);
+  const [deployedObjectsInQueue, setDeployedObjectsInQueue] = useState<DeployedPackageInfo[]>([]);
+
+  const [dragged, setDragged] = useState<object>({type: 'empty'});
+  
   const wallet = useWallet()
 
   const [toasts, setToasts] = useState<JSX.Element | undefined>();
@@ -268,6 +272,16 @@ function DeployPage() {
   }
           
   //---Handlers---//
+
+  const newDrag = (dragged: object) => {
+    console.log('newDrag', dragged);
+
+    setDragged(dragged);
+  }
+
+  const dropped = () => {
+    console.log('dropped', dragged);
+  }
 
   const handleProjectChange = (projectChange: string) => {
 
@@ -519,6 +533,7 @@ function DeployPage() {
 
         const packageInfos = publishTxnCreated?.map((object: any) => {
           return {id: Math.random().toString(36).slice(2), name: currentProject.package, address: object.reference.objectId};
+          // return object.reference.objectId
         });
 
         if (!packageInfos) {
@@ -528,9 +543,9 @@ function DeployPage() {
         console.log('packageInfos', packageInfos)
 
         if (publishTxnCreated) {
-          const newDeployedObjects = deployedObjects.concat(packageInfos);
-          console.log('newDeployedObjects', newDeployedObjects)
-          setDeployedObjects(newDeployedObjects);
+          const newDeployedObjectsInQueue = deployedObjectsInQueue.concat(packageInfos);
+          console.log('newDeployedObjects', newDeployedObjectsInQueue)
+          setDeployedObjectsInQueue(newDeployedObjectsInQueue);
         }
 
 
@@ -665,22 +680,32 @@ function DeployPage() {
             compileError={compileError}
             useSuiVision={useSuiVision}
             setUseSuiVision={setUseSuiVision}
+            objects={deployedObjectsInQueue}
           />
         }
         canvas={
-        <DeployCanvas 
-          isOverlayActive={isOverlayActive}
-          deployedObjects={deployedObjects}
-          toasts={toasts}
-          setPendingTxn={setPendingTxn}
-          setSuccessTxn={setSuccessTxn}
-          setFailTxn={setFailTxn}
-          // setLoading={setLoading}
-          removeDeployedObject={removeDeployedObject}
-          rearrangeDeployedObjects={rearrangeDeployedObjects}
-          setIsOverlayActive={setIsOverlayActive}
-          useSuiVision={useSuiVision}
-        />}
+          <DeployCanvas 
+            isOverlayActive={isOverlayActive}
+            deployedObjects={deployedObjects}
+            toasts={toasts}
+            setPendingTxn={setPendingTxn}
+            setSuccessTxn={setSuccessTxn}
+            setFailTxn={setFailTxn}
+            // setLoading={setLoading}
+            removeDeployedObject={removeDeployedObject}
+            rearrangeDeployedObjects={rearrangeDeployedObjects}
+            setIsOverlayActive={setIsOverlayActive}
+            useSuiVision={useSuiVision}
+            dropped={dropped}
+            projectList={projectList}
+            currentProject={currentProject}
+            changeProject={handleProjectChange}
+            publishPackage={handlePackagePublish}
+            addExistingObject={addExistingObject}
+            addFromTransactions={addFromTransactions}
+            compileError={compileError}
+          />
+        }
       />
     </div>
   );

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Project } from "../types/project-types"
+import { DeployedPackageInfo, Project } from "../types/project-types"
 import { shortenAddress } from "../utils/address-shortener";
 import { useAccountBalance, useWallet } from "@suiet/wallet-kit";
 import { decimalify } from "../utils/decimal";
@@ -23,6 +23,7 @@ function DeploySidebar(
     compileError: string,
     useSuiVision: boolean,
     setUseSuiVision: (useSuiVision: boolean) => void,
+    objects: DeployedPackageInfo[],
   }
 ) {
 
@@ -52,6 +53,18 @@ function DeploySidebar(
 
   const projects = props.projectList.map((project: string) => {
     return <option value={project}>{project}</option>
+  });
+
+  const objects = props.objects.map((object: DeployedPackageInfo) => {
+    return (
+      <div 
+        className="text-center border border-accent h-10 bg-base-100 rounded-xl cursor-grab" 
+        onDragStart={(event) => onDragStart(event, 'object')}
+        draggable
+      >
+        <div className="font-mono p-2">{object.name}</div>
+      </div> 
+    )
   });
 
   function WalletSelector() {
@@ -195,11 +208,258 @@ function DeploySidebar(
     props.setUseSuiVision(!props.useSuiVision);
   }
 
+  const onDragStart = (event: any, nodeType: any) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
   // console.log('walleticon', walletIcon)
 
   return (
-    <div className="h-full">
-      {wallet.connected && 
+    <div className="h-full overflow-y-auto">
+      {
+        wallet.connected &&
+        <div className="join join-vertical w-full">
+          <div className="collapse collapse-arrow join-item border border-base-300">
+            <input type="radio" name="my-accordion-4"/> 
+            <div className="collapse-title text-xl font-medium">
+              Wallet information
+            </div>
+            <div className="collapse-content"> 
+              
+              <h2 className="card-title">
+                {
+                  walletIcon != '' &&
+                  <img src={walletIcon} alt={wallet.name} className="w-6 h-6 inline-block" />
+                }
+                {
+                  wallet.name == 'Martian Sui Wallet' ?
+                  <span>Martian wallet</span> :
+                  <span>{wallet.name}</span>
+                }
+                <a className="link link-hover rounded-none" href={ props.useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/account/${wallet.address}` : `https://explorer.sui.io/address/${wallet.address}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
+                  <button className="btn btn-square btn-ghost btn-xs " >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
+                  </button>
+                </a> 
+              </h2>
+              <div>
+                <h2 className='font-semibold'>Address:</h2>
+                <p className="text-center text-neutral-content font-mono text-opacity-90">
+                  {shortenAddress(wallet.address || '', 5)}
+                  <label 
+                    tabIndex={0} 
+                    className="btn btn-circle btn-ghost btn-xs text-info" 
+                    onClick={async () => {
+                      navigator.clipboard.writeText(wallet.address || '')
+                      console.log('clipboard', await navigator.clipboard.readText())
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                  </label>
+                </p>
+              </div>
+              <div>
+                <h2 className='font-semibold'>Gas balance:</h2>
+                <p className="text-center text-neutral-content font-mono text-opacity-90">
+                  {loading ? "Loading balance..." : `${decimalify(balance?.toString() || '', 9)} Sui`} 
+                  {!loading &&
+                    <label 
+                      tabIndex={0} 
+                      className="btn btn-circle btn-ghost btn-xs text-info" 
+                      onClick={async () => {
+                        navigator.clipboard.writeText(balance?.toString() || '')
+                        console.log('clipboard', await navigator.clipboard.readText())
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    </label>
+                  }
+                </p>
+              </div>
+              <div>
+                <h2 className='font-semibold'>Network:</h2>
+                <p className="text-center text-neutral-content font-mono text-opacity-90">
+                  {wallet.chain?.name || ''} 
+                  <label 
+                    tabIndex={0} 
+                    className="btn btn-circle btn-ghost btn-xs text-info" 
+                    onClick={async () => {
+                      navigator.clipboard.writeText(wallet.chain?.name || '')
+                      console.log('clipboard', await navigator.clipboard.readText())
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                  </label>
+                </p>
+              </div>
+              <div className="card-actions justify-end mt-2">
+                <button
+                  onClick={() => {
+                    wallet.disconnect();
+                    setWalletIcon('');
+                  }}
+                  className="btn btn-xs btn-error btn-outline badge"
+                >
+                  Disconnect
+                </button>
+              </div>
+            </div>
+          </div>
+
+
+
+
+          {/* <div className="collapse collapse-arrow join-item border border-base-300">
+            <input type="radio" name="my-accordion-4" /> 
+            <div className="collapse-title text-xl font-medium">
+              Deploy & Interact
+            </div>
+            <div className="collapse-content"> 
+              <div style={{display: "flex", justifyContent: "space-around"}}>
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text font-bold">Deploy package</span>
+                  </label>
+                  <div className="input-group input-group-xs w-full">
+                    <select 
+                      name="project" 
+                      id="projectSelector"
+                      onChange={handleProjectChange}
+                      className="input input-bordered input-success w-full max-w-xs input-xs focus:outline-none"
+                    >
+                      <option value="**default">--Select a package--</option>
+                      {projects}
+                    </select>
+                    <button 
+                      onClick={handlePackagePublish} 
+                      className="btn btn-xs btn-success btn-outline tutorial-deploy-publish-button"
+                      disabled={props.currentProject == null || props.compileError != ''}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="arcs"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2-2.4-3.5-4.4-3.5h-1.2c-.7-3-3.2-5.2-6.2-5.6-3-.3-5.9 1.3-7.3 4-1.2 2.5-1 6.5.5 8.8m8.7-1.6V21"/><path d="M16 16l-4-4-4 4"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div style={{marginTop:"0px", marginBottom:"5px"}} >
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-bold">Add existing package or object</span>
+                  </label>
+                  <div className="input-group input-group-xs">
+                    <input 
+                      id="addObjectInput"
+                      type="text" 
+                      placeholder="0x000...000" 
+                      className="input input-bordered input-warning w-full max-w-xs input-xs focus:outline-none font-mono"
+                      onChange={verifyObjectId}
+                    />
+                    <button 
+                      className="btn btn-xs btn-outline btn-warning" 
+                      onClick={handleObjectAdd}
+                      disabled={!isValidObjectId}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="arcs"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2-2.4-3.5-4.4-3.5h-1.2c-.7-3-3.2-5.2-6.2-5.6-3-.3-5.9 1.3-7.3 4-1.2 2.5-1 6.5.5 8.8M12 19.8V12M16 17l-4 4-4-4"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <button
+                  onClick={handleSuiPackageAdd}
+                  className="btn btn-xs btn-warning btn-outline badge"
+                >
+                  Add Sui Package
+                </button>
+              </div>
+              <div style={{marginTop:"0px", marginBottom:"5px"}}>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-bold">Add from transaction digest</span>
+                  </label>
+                  <div className="input-group input-group-xs">
+                    <input 
+                      id="addTransactionInput"
+                      type="text" 
+                      placeholder="transaction digest" 
+                      className="input input-bordered input-warning w-full max-w-xs input-xs focus:outline-none font-mono"
+                      onChange={verifyTransactionDigest}
+                    />
+                    <button 
+                      className="btn btn-xs btn-outline btn-warning" 
+                      onClick={hanldeTransactionDigestAdd}
+                      disabled={!isInputValidTransactionDigest}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="arcs"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2-2.4-3.5-4.4-3.5h-1.2c-.7-3-3.2-5.2-6.2-5.6-3-.3-5.9 1.3-7.3 4-1.2 2.5-1 6.5.5 8.8M12 19.8V12M16 17l-4 4-4-4"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2">
+                <h2 className="text-center font-bold p-1">Objects</h2>
+                <div className="flex flex-wrap gap-2 justify-center max-h-60 overflow-y-auto">
+                  {objects}
+                  <div 
+                    className="text-center border border-accent h-10 bg-base-100 rounded-xl cursor-grab" 
+                    onDragStart={(event) => onDragStart(event, 'object')}
+                    draggable
+                  >
+                    <div className="font-mono p-2">Sui</div>
+                  </div> 
+                  <div className="text-center border border-accent  h-10 bg-base-100 rounded-xl ">
+                    <div className="font-mono p-2">Examples</div>
+                  </div> 
+                  <div className="text-center border border-accent  h-10 bg-base-100 rounded-xl">
+                    <div className="font-mono p-2">UpgradeCap</div>
+                  </div>
+                  <div className="text-center border border-accent  h-10 bg-base-100 rounded-xl">
+                    <div className="font-mono p-2">CoinMetadata</div>
+                  </div> 
+                  <div className="text-center border border-accent  h-10 bg-base-100 rounded-xl">
+                    <div className="font-mono p-2">TreasuryCap</div>
+                  </div> 
+                  <div className="text-center border border-accent  h-10 bg-base-100 rounded-xl">
+                    <div className="font-mono p-2">C</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> */}
+
+
+
+
+
+          <div className="collapse collapse-arrow join-item border border-base-300">
+            <input type="radio" name="my-accordion-4" /> 
+            <div className="collapse-title text-xl font-medium">
+              Studio Configurations
+            </div>
+            <div className="collapse-content"> 
+              <SettingToggle
+                label="Use Sui Vision explorer"
+                checked={props.useSuiVision}
+                onChange={handleSetUseSuiVision}
+                tooltip="Use Sui Vision explorer instead of the default explorer"
+                // new={true}
+              />
+              <SettingToggle
+                label="Ignore upgradeCap"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+                disabled={true}
+              />
+              <SettingToggle
+                label="Automatically add all created objects"
+                checked={ignoreUpgradeCap}
+                onChange={handleSetIgnoreUpgradeCap}
+                disabled={true}
+              />
+            </div>
+          </div>
+        </div>
+      }
+      {/* {wallet.connected && 
         <div className="card w-full shadow-xl card-compact">
           <div className="card-actions justify-end z-20">
             <a className="link link-hover " href={ props.useSuiVision && wallet.chain?.name != 'Sui Devnet' ? `https://${wallet.chain?.name == 'Sui Testnet' ? 'testnet.' : ''}suivision.xyz/account/${wallet.address}` : `https://explorer.sui.io/address/${wallet.address}?network=${network[wallet.chain?.name || 'Sui Devnet']}`} target="_blank" rel="noopener noreferrer">
@@ -207,6 +467,15 @@ function DeploySidebar(
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>            
               </button>
             </a> 
+            <button 
+              className="btn btn-square btn-ghost btn-xs mt-1 mr-1 hover:bg-red-500 hover:text-white"
+              onClick={() => {
+                wallet.disconnect();
+                setWalletIcon('');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/></svg>
+            </button>
           </div>
           <div className="card-body -mt-10">
             <h2 className="card-title">
@@ -349,28 +618,37 @@ function DeploySidebar(
                 </div>
               </div>
             </div>
-            <div style={{marginTop:"0px", marginBottom:"5px"}}>
-              <span className="font-bold">Additional configs: </span>
-              <SettingToggle
-                label="Use Sui Vision explorer"
-                checked={props.useSuiVision}
-                onChange={handleSetUseSuiVision}
-                tooltip="Use Sui Vision explorer to view transactions and objects instead of the default explorer"
-                new={true}
-              />
-              <SettingToggle
-                label="Ignore upgradeCap"
-                checked={ignoreUpgradeCap}
-                onChange={handleSetIgnoreUpgradeCap}
-                disabled={true}
-              />
-              <SettingToggle
-                label="Automatically add all created objects"
-                checked={ignoreUpgradeCap}
-                onChange={handleSetIgnoreUpgradeCap}
-                disabled={true}
-              />
+
+
+            <div className="collapse collapse-arrow max-h-40 rounded-sm">
+              <input type="checkbox"/>
+              <span className="collapse-title ">
+                Studio configurations:
+              </span>
+              <div className="collapse-content overflow-y-auto">
+                <SettingToggle
+                  label="Use Sui Vision explorer"
+                  checked={props.useSuiVision}
+                  onChange={handleSetUseSuiVision}
+                  tooltip="Use Sui Vision explorer instead of the default explorer"
+                  // new={true}
+                />
+                <SettingToggle
+                  label="Ignore upgradeCap"
+                  checked={ignoreUpgradeCap}
+                  onChange={handleSetIgnoreUpgradeCap}
+                  disabled={true}
+                />
+                <SettingToggle
+                  label="Automatically add all created objects"
+                  checked={ignoreUpgradeCap}
+                  onChange={handleSetIgnoreUpgradeCap}
+                  disabled={true}
+                />
+              </div>
             </div>
+
+
             <div className="card-actions justify-end">
               <button
                 onClick={() => {
@@ -384,7 +662,7 @@ function DeploySidebar(
             </div>
           </div>
         </div>
-      }
+      } */}
       { !wallet.connected &&
         <div className="card w-full shadow-xl card-compact">
           <div className="card-body ">
